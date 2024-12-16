@@ -22,6 +22,9 @@ import {
   NativeWebViewIOS,
   ViewManager,
 } from './WebViewTypes';
+import {
+  type Minkasu2FAConstants
+} from './WebViewTypes';
 
 import styles from './WebView.styles';
 
@@ -29,7 +32,7 @@ import styles from './WebView.styles';
 const codegenNativeCommands = codegenNativeCommandsUntyped as <T extends {}>(options: { supportedCommands: (keyof T)[] }) => T;
 
 const Commands = codegenNativeCommands({
-  supportedCommands: ['goBack', 'goForward', 'reload', 'stopLoading', 'injectJavaScript', 'requestFocus', 'postMessage', 'loadUrl'],
+  supportedCommands: ['goBack', 'goForward', 'reload', 'stopLoading', 'injectJavaScript', 'requestFocus', 'postMessage', 'loadUrl','initMinkasu2FA'],
 });
 
 const { resolveAssetSource } = Image;
@@ -89,6 +92,9 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(({
   incognito,
   decelerationRate: decelerationRateProp,
   onShouldStartLoadWithRequest: onShouldStartLoadWithRequestProp,
+  minkasu2FAConfig,
+  onMinkasu2FAInit,
+  onMinkasu2FAResult,
   ...otherProps
 }, ref) => {
   const webViewRef = useRef<NativeWebViewIOS | null>(null);
@@ -105,7 +111,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(({
     viewManager.startLoadWithResult(!!shouldStart, lockIdentifier);
   }, [nativeConfig?.viewManager]);
 
-  const { onLoadingStart, onShouldStartLoadWithRequest, onMessage, viewState, setViewState, lastErrorEvent, onHttpError, onLoadingError, onLoadingFinish, onLoadingProgress, onContentProcessDidTerminate } = useWebWiewLogic({
+  const { onLoadingStart, onShouldStartLoadWithRequest, onMessage, viewState, setViewState, lastErrorEvent, onHttpError, onLoadingError, onLoadingFinish, onLoadingProgress, onContentProcessDidTerminate, onMinkasu2FAInitilaization, onMinkasu2FAResultAction } = useWebWiewLogic({
     onNavigationStateChange,
     onLoad,
     onError,
@@ -119,6 +125,8 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(({
     onShouldStartLoadWithRequestProp,
     onShouldStartLoadWithRequestCallback,
     onContentProcessDidTerminateProp,
+    onMinkasu2FAInit,
+    onMinkasu2FAResult
   });
 
   useImperativeHandle(ref, () => ({
@@ -133,6 +141,7 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(({
     postMessage: (data: string) => Commands.postMessage(webViewRef.current, data),
     injectJavaScript: (data: string) => Commands.injectJavaScript(webViewRef.current, data),
     requestFocus: () => Commands.requestFocus(webViewRef.current),
+    initMinkasu2FA: (mk2FAConfig: Object) => Commands.initMinkasu2FA(webViewRef.current, JSON.stringify(mk2FAConfig))
   }), [setViewState, webViewRef]);
 
 
@@ -164,6 +173,11 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(({
   const NativeWebView
   = (nativeConfig?.component as typeof NativeWebViewIOS | undefined)
   || RNCWebView;
+
+  let mk2FAConfig;
+  if (minkasu2FAConfig) {
+    mk2FAConfig = JSON.stringify(minkasu2FAConfig);
+  }
 
   const webView = (
     <NativeWebView
@@ -197,6 +211,9 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(({
       // TODO: find a better way to type this.
       source={resolveAssetSource(source as ImageSourcePropType)}
       style={webViewStyles}
+      minkasu2FAConfig={mk2FAConfig}
+      onMinkasu2FAInit={onMinkasu2FAInitilaization}
+      onMinkasu2FAResult={onMinkasu2FAResultAction}
       {...nativeConfig?.props}
     />
   );
@@ -212,6 +229,13 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(({
 const isFileUploadSupported: () => Promise<boolean>
   = async () => true;
 
-const WebView = Object.assign(WebViewComponent, {isFileUploadSupported});
+const { getConstants } = NativeModules.RNCWebView;
+
+// Minkasu2FA
+const { getAvailableMinkasu2FAOperations, performMinkasu2FAOperation } = NativeModules.RNCWebView;
+const Minkasu2FAConstant: Minkasu2FAConstants = getConstants().MINKASU2FA_CONSTANTS;
+const Minkasu2FA = { getAvailableMinkasu2FAOperations, performMinkasu2FAOperation, Constants: Minkasu2FAConstant };
+
+const WebView = Object.assign(WebViewComponent, { isFileUploadSupported }, { Minkasu2FA });
 
 export default WebView;

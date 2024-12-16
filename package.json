@@ -85,5 +85,6 @@
     "index.d.ts",
     "react-native-webview.podspec",
     "react-native.config.js"
-  ]
+  ],
+  "packageManager": "yarn@1.22.19"
 }

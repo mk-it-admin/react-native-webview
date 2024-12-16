@@ -10,8 +10,14 @@
 #import <React/RCTUIManager.h>
 #import <React/RCTDefines.h>
 #import "RNCWebView.h"
+#import <Minkasu2FA/Minkasu2FA.h>
+#import "Minkasu2FAConstants.h"
 
-@interface RNCWebViewManager () <RNCWebViewDelegate>
+@interface RNCWebView()
+@property (nonatomic, copy) WKWebView *webView;
+@end
+
+@interface RNCWebViewManager () <RNCWebViewDelegate,Minkasu2FACallbackDelegate>
 @end
 
 @implementation RCTConvert (WKWebView)
@@ -38,6 +44,8 @@ RCT_ENUM_CONVERTER(RNCWebViewPermissionGrantType, (@{
 {
   NSConditionLock *_shouldStartLoadLock;
   BOOL _shouldStartLoad;
+  Minkasu2FAConfig *minkasuConfig;
+  RNCWebView *mkWebView;
 }
 
 RCT_EXPORT_MODULE()
@@ -284,6 +292,258 @@ RCT_EXPORT_METHOD(startLoadWithResult:(BOOL)result lockIdentifier:(NSInteger)loc
     RCTLogWarn(@"startLoadWithResult invoked with invalid lockIdentifier: "
                "got %lld, expected %lld", (long long)lockIdentifier, (long long)_shouldStartLoadLock.condition);
   }
+}
+
+RCT_EXPORT_VIEW_PROPERTY(onMinkasu2FAInit, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onMinkasu2FAResult, RCTDirectEventBlock)
+
+-(void)onPayByAttribute{
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:@"minkasuPayByAttribute" object:nil];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        Minkasu2FAConfig *config = [self createConfig:mkWebView.minkasu2FAConfig];
+        NSString *status = STATUS_SUCCESS;
+        NSError *err = nil;
+        if (self.isSkipInit) {
+            self->mkWebView.onMinkasu2FAInit(@{@"status":status,@"initType":INIT_BY_ATTRIBUTE });
+        }else{
+            @try {
+                [Minkasu2FA initReactSDKWithWKWebView:self->mkWebView.webView andConfiguration:config reactSDKVersion:REACT_NATIVE_MINKASU2FA_SDK_VERSION inViewController:nil error:&err];
+                self->mkWebView.onMinkasu2FAInit(@{@"status":status,@"initType":INIT_BY_ATTRIBUTE });
+            } @catch (NSException *exception) {
+                status = STATUS_FAILURE;
+                self->mkWebView.onMinkasu2FAInit(@{@"status":status,@"initType":INIT_BY_ATTRIBUTE,@"errorMessage":exception.reason,@"errorCode":exception.name});
+            }
+        }
+    });
+}
+
+RCT_CUSTOM_VIEW_PROPERTY(minkasu2FAConfig, NSString, RNCWebView) {
+    view.minkasu2FAConfig = json == nil? nil:[RCTConvert NSString: json];
+    mkWebView = view;
+    if(view.webView){
+        [self onPayByAttribute];
+    }else{
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onPayByAttribute) name:@"minkasuPayByAttribute" object:nil];
+    }
+}
+
+
+-(void) onPayByMethod{
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:@"minkasuPayByMethod" object:nil];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSString *status = STATUS_SUCCESS;
+        NSError *err = nil;
+        if (self.isSkipInit) {
+            self->mkWebView.onMinkasu2FAInit(@{@"status":status,@"initType":INIT_BY_METHOD });
+        }else{
+            @try {
+                [Minkasu2FA initReactSDKWithWKWebView:self->mkWebView.webView andConfiguration:self->minkasuConfig reactSDKVersion:REACT_NATIVE_MINKASU2FA_SDK_VERSION inViewController:nil error:&err];
+                self->mkWebView.onMinkasu2FAInit(@{@"status":status,@"initType":INIT_BY_METHOD });
+            } @catch (NSException *exception) {
+                status = STATUS_FAILURE;
+                self->mkWebView.onMinkasu2FAInit(@{@"status":status,@"initType":INIT_BY_METHOD,@"errorMessage":exception.reason,@"errorCode":exception.name});
+            }
+        }
+    });
+}
+
+RCT_EXPORT_METHOD(initMinkasu2FA:(nonnull NSNumber *)reactTag minkasu2FAConfig:(NSString*)minkasu2FAConfig)
+{
+    [self.bridge.uiManager addUIBlock:^(__unused RCTUIManager *uiManager, NSDictionary<NSNumber *, RNCWebView *> *viewRegistry) {
+        RNCWebView *view = viewRegistry[reactTag];
+        if (![view isKindOfClass:[RNCWebView class]]) {
+            RCTLogError(@"Invalid view returned from registry, expecting RNCWebView, got: %@", view);
+        } else {
+            Minkasu2FAConfig *config = [self createConfig:minkasu2FAConfig];
+            self->minkasuConfig = config;
+            self->mkWebView = view;
+            if(view.webView){
+                [self onPayByMethod];
+            }else{
+                [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onPayByMethod) name:@"minkasuPayByMethod" object:nil];
+            }
+        }
+    }];
+}
+
+-(UIColor *)colorFromHexString:(NSString *)hexString {
+    unsigned rgbValue = 0;
+    NSScanner *scanner = [NSScanner scannerWithString:hexString];
+    [scanner setScanLocation:1]; // bypass '#' character
+    [scanner scanHexInt:&rgbValue];
+    return [UIColor colorWithRed:((rgbValue & 0xFF0000) >> 16)/255.0 green:((rgbValue & 0xFF00) >> 8)/255.0 blue:(rgbValue & 0xFF)/255.0 alpha:1.0];
+}
+
+// - (NSDictionary *)constantsToExport{
+    
+//     NSDictionary *export = @{@"MERCHANT_ID":MERCHANT_ID,
+//                              @"MERCHANT_TOKEN":MERCHANT_TOKEN,
+//                              @"CUSTOMER_ID":CUSTOMER_ID,
+//                              @"CUSTOMER_INFO":CUSTOMER_INFO,
+//                              @"CUSTOMER_FIRST_NAME":CUSTOMER_FIRST_NAME,
+//                              @"CUSTOMER_LAST_NAME":CUSTOMER_LAST_NAME,
+//                              @"CUSTOMER_EMAIL":CUSTOMER_EMAIL,
+//                              @"CUSTOMER_PHONE":CUSTOMER_PHONE,
+//                              @"CUSTOMER_ADDRESS_INFO":CUSTOMER_ADDRESS_INFO,
+//                              @"CUSTOMER_ADDRESS_LINE_1":CUSTOMER_ADDRESS_LINE_1,
+//                              @"CUSTOMER_ADDRESS_LINE_2":CUSTOMER_ADDRESS_LINE_2,
+//                              @"CUSTOMER_ADDRESS_CITY":CUSTOMER_ADDRESS_CITY,
+//                              @"CUSTOMER_ADDRESS_STATE":CUSTOMER_ADDRESS_STATE,
+//                              @"CUSTOMER_ADDRESS_COUNTRY":CUSTOMER_ADDRESS_COUNTRY,
+//                              @"CUSTOMER_ADDRESS_ZIP_CODE":CUSTOMER_ADDRESS_ZIP_CODE,
+//                              @"CUSTOMER_ORDER_INFO":CUSTOMER_ORDER_INFO,
+//                              @"CUSTOMER_ORDER_ID":CUSTOMER_ORDER_ID,
+//                              @"SDK_MODE_SANDBOX":SDK_MODE_SANDBOX,
+//                              @"STATUS":STATUS,
+//                              @"STATUS_SUCCESS":STATUS_SUCCESS,
+//                              @"STATUS_FAILURE":STATUS_FAILURE,
+//                              @"ERROR_MESSAGE":ERROR_MESSAGE,
+//                              @"ERROR_CODE":ERROR_CODE,
+//                              @"INIT_TYPE":INIT_TYPE,
+//                              @"INIT_BY_METHOD":INIT_BY_METHOD,
+//                              @"INIT_BY_ATTRIBUTE":INIT_BY_ATTRIBUTE,
+//                              @"SKIP_INIT":SKIP_INIT,
+//                              @"NAVIGATION_BAR_COLOR":NAVIGATION_BAR_COLOR,
+//                              @"NAVIGATION_BAR_TEXT_COLOR":NAVIGATION_BAR_TEXT_COLOR,
+//                              @"BUTTON_BACKGROUND_COLOR":BUTTON_BACKGROUND_COLOR,
+//                              @"BUTTON_TEXT_COLOR":BUTTON_TEXT_COLOR,
+//                              @"DARK_MODE_NAVIGATION_BAR_COLOR":DARK_MODE_NAVIGATION_BAR_COLOR,
+//                              @"DARK_MODE_NAVIGATION_BAR_TEXT_COLOR":DARK_MODE_NAVIGATION_BAR_TEXT_COLOR,
+//                              @"DARK_MODE_BUTTON_BACKGROUND_COLOR":DARK_MODE_BUTTON_BACKGROUND_COLOR,
+//                              @"DARK_MODE_BUTTON_TEXT_COLOR":DARK_MODE_BUTTON_TEXT_COLOR,
+//                              @"SUPPORT_DARK_MODE":SUPPORT_DARK_MODE,
+//                              @"IOS_THEME_OBJ":IOS_THEME_OBJ,
+//                              @"MINKASU_2FA_USER_AGENT":[Minkasu2FA getMinkasu2FAUserAgent],
+//                              @"PARTNER_MERCHANT_INFO":PARTNER_MERCHANT_INFO,
+//                              @"PARTNER_MERCHANT_ID":PARTNER_MERCHANT_ID,
+//                              @"PARTNER_MERCHANT_NAME":PARTNER_MERCHANT_NAME,
+//                              @"PARTNER_TRANSACTION_ID":PARTNER_TRANSACTION_ID,
+//                              @"CUSTOMER_BILLING_CATEGORY":BILLING_CATEGORY,
+//                              @"CUSTOMER_CUSTOM_DATA":CUSTOM_DATA,
+//                              @"RESULT_INFO_TYPE":RESULT_INFO_TYPE,
+//                              @"RESULT_DATA":RESULT_DATA};
+//     return export;
+// }
+
+
+
+-(Minkasu2FAConfig*)createConfig:(NSString*)mkConfig{
+    NSError *jsonError;
+    NSData *objectData = [mkConfig dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary *minkasu2FAConfig = [NSJSONSerialization JSONObjectWithData:objectData
+                                          options:NSJSONReadingMutableContainers
+                                            error:&jsonError];
+    
+    Minkasu2FAConfig *config = [Minkasu2FAConfig new];
+    config.delegate = self;
+    if (minkasu2FAConfig && !minkasu2FAConfig[SKIP_INIT]) {
+        Minkasu2FACustomerInfo *customer = [Minkasu2FACustomerInfo new];
+        Minkasu2FAAddress *address = [Minkasu2FAAddress new];
+        Minkasu2FAOrderInfo *orderInfo = [Minkasu2FAOrderInfo new];
+        if (minkasu2FAConfig[CUSTOMER_ADDRESS_INFO] && minkasu2FAConfig[CUSTOMER_ADDRESS_INFO] != nil) {
+            if (minkasu2FAConfig[CUSTOMER_ADDRESS_INFO][CUSTOMER_ADDRESS_LINE_1]) {
+                address.line1 = minkasu2FAConfig[CUSTOMER_ADDRESS_INFO][CUSTOMER_ADDRESS_LINE_1];
+            }
+            if (minkasu2FAConfig[CUSTOMER_ADDRESS_INFO][CUSTOMER_ADDRESS_LINE_2]) {
+                address.line2 = minkasu2FAConfig[CUSTOMER_ADDRESS_INFO][CUSTOMER_ADDRESS_LINE_2];
+            }
+            if (minkasu2FAConfig[CUSTOMER_ADDRESS_INFO][CUSTOMER_ADDRESS_CITY]) {
+                address.city = minkasu2FAConfig[CUSTOMER_ADDRESS_INFO][CUSTOMER_ADDRESS_CITY];
+            }
+            if (minkasu2FAConfig[CUSTOMER_ADDRESS_INFO][CUSTOMER_ADDRESS_STATE]) {
+                address.state = minkasu2FAConfig[CUSTOMER_ADDRESS_INFO][CUSTOMER_ADDRESS_STATE];
+            }
+            if (minkasu2FAConfig[CUSTOMER_ADDRESS_INFO][CUSTOMER_ADDRESS_COUNTRY]) {
+                address.country = minkasu2FAConfig[CUSTOMER_ADDRESS_INFO][CUSTOMER_ADDRESS_COUNTRY];
+            }
+            if (minkasu2FAConfig[CUSTOMER_ADDRESS_INFO][CUSTOMER_ADDRESS_ZIP_CODE]) {
+                address.zipCode = minkasu2FAConfig[CUSTOMER_ADDRESS_INFO][CUSTOMER_ADDRESS_ZIP_CODE];
+            }
+        }
+        if (minkasu2FAConfig[CUSTOMER_INFO] && minkasu2FAConfig[CUSTOMER_INFO] != nil ) {
+            if (minkasu2FAConfig[CUSTOMER_INFO][CUSTOMER_FIRST_NAME]) {
+                customer.firstName = minkasu2FAConfig[CUSTOMER_INFO][CUSTOMER_FIRST_NAME];
+            }
+            if (minkasu2FAConfig[CUSTOMER_INFO][CUSTOMER_LAST_NAME]) {
+                customer.lastName = minkasu2FAConfig[CUSTOMER_INFO][CUSTOMER_LAST_NAME];
+            }
+            if (minkasu2FAConfig[CUSTOMER_INFO][CUSTOMER_PHONE]) {
+                customer.phone = minkasu2FAConfig[CUSTOMER_INFO][CUSTOMER_PHONE];
+            }
+            if (minkasu2FAConfig[CUSTOMER_INFO][CUSTOMER_EMAIL]) {
+                customer.email = minkasu2FAConfig[CUSTOMER_INFO][CUSTOMER_EMAIL];
+            }
+        }
+        customer.address = address;
+        if (minkasu2FAConfig[MERCHANT_ID]) {
+            config._id = minkasu2FAConfig[MERCHANT_ID];
+        }
+        if (minkasu2FAConfig[MERCHANT_TOKEN]) {
+            config.token = minkasu2FAConfig[MERCHANT_TOKEN];
+        }
+        if (minkasu2FAConfig[CUSTOMER_ID]) {
+            config.merchantCustomerId = minkasu2FAConfig[CUSTOMER_ID];
+        }
+        config.customerInfo = customer;
+        if (minkasu2FAConfig[SDK_MODE_SANDBOX]) {
+            config.sdkMode = [minkasu2FAConfig[SDK_MODE_SANDBOX]  isEqual: @1] ? MINKASU2FA_SANDBOX_MODE : MINKASU2FA_PRODUCTION_MODE;
+        }
+        if (minkasu2FAConfig[CUSTOMER_ORDER_INFO] && minkasu2FAConfig[CUSTOMER_ORDER_INFO] != nil) {
+            if (minkasu2FAConfig[CUSTOMER_ORDER_INFO][CUSTOMER_ORDER_ID]) {
+                orderInfo.orderId = minkasu2FAConfig[CUSTOMER_ORDER_INFO][CUSTOMER_ORDER_ID];
+            }
+            if (minkasu2FAConfig[CUSTOMER_ORDER_INFO][BILLING_CATEGORY]) {
+                orderInfo.billingCategory = minkasu2FAConfig[CUSTOMER_ORDER_INFO][BILLING_CATEGORY];
+            }
+            if (minkasu2FAConfig[CUSTOMER_ORDER_INFO][CUSTOM_DATA]) {
+                orderInfo.billingCategory = minkasu2FAConfig[CUSTOMER_ORDER_INFO][CUSTOM_DATA];
+            }
+        }
+        
+        config.orderInfo = orderInfo;
+        Minkasu2FACustomTheme *mkcolorTheme = [Minkasu2FACustomTheme new];
+        if (minkasu2FAConfig[IOS_THEME_OBJ] && minkasu2FAConfig[IOS_THEME_OBJ] != nil) {
+            if (minkasu2FAConfig[IOS_THEME_OBJ][NAVIGATION_BAR_COLOR]) {
+                mkcolorTheme.navigationBarColor = [self colorFromHexString:minkasu2FAConfig[IOS_THEME_OBJ][NAVIGATION_BAR_COLOR]];
+            }
+            if (minkasu2FAConfig[IOS_THEME_OBJ][NAVIGATION_BAR_TEXT_COLOR]) {
+                mkcolorTheme.navigationBarTextColor = [self colorFromHexString:minkasu2FAConfig[IOS_THEME_OBJ][NAVIGATION_BAR_TEXT_COLOR]];
+            }
+            if (minkasu2FAConfig[IOS_THEME_OBJ][BUTTON_BACKGROUND_COLOR]) {
+                mkcolorTheme.buttonBackgroundColor = [self colorFromHexString:minkasu2FAConfig[IOS_THEME_OBJ][BUTTON_BACKGROUND_COLOR]];
+            }
+            if (minkasu2FAConfig[IOS_THEME_OBJ][BUTTON_TEXT_COLOR]) {
+                mkcolorTheme.buttonTextColor = [self colorFromHexString:minkasu2FAConfig[IOS_THEME_OBJ][BUTTON_TEXT_COLOR]];
+            }
+            if (minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_NAVIGATION_BAR_COLOR]) {
+                mkcolorTheme.darkModeNavigationBarColor = [self colorFromHexString:minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_NAVIGATION_BAR_COLOR]];
+            }
+            if (minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_NAVIGATION_BAR_TEXT_COLOR]) {
+                mkcolorTheme.darkModeNavigationBarTextColor = [self colorFromHexString:minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_NAVIGATION_BAR_TEXT_COLOR]];
+            }
+            if (minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_BUTTON_BACKGROUND_COLOR]) {
+                mkcolorTheme.darkModeButtonBackgroundColor = [self colorFromHexString:minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_BUTTON_BACKGROUND_COLOR]];
+            }
+            if (minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_BUTTON_TEXT_COLOR]) {
+                mkcolorTheme.darkModeButtonTextColor = [self colorFromHexString:minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_BUTTON_TEXT_COLOR]];
+            }
+            if (minkasu2FAConfig[IOS_THEME_OBJ][SUPPORT_DARK_MODE]) {
+                mkcolorTheme.supportDarkMode = minkasu2FAConfig[IOS_THEME_OBJ][SUPPORT_DARK_MODE];
+            }
+        }
+        config.customTheme = mkcolorTheme;
+    }else{
+        _isSkipInit = true;
+    }
+    return config;
+}
+
++(BOOL)requiresMainQueueSetup
+{  return YES;  // only do this if your module initialization relies on calling UIKit!
+}
+
+- (void)minkasu2FACallback:(Minkasu2FACallbackInfo *)minkasu2FACallbackInfo{
+    self->mkWebView.onMinkasu2FAResult(@{@"infoType":@(minkasu2FACallbackInfo.infoType),@"data":minkasu2FACallbackInfo.data});
 }
 
 @end

@@ -450,6 +450,8 @@ RCTAutoInsetsProtocol>
     [self setHideKeyboardAccessoryView: _savedHideKeyboardAccessoryView];
     [self setKeyboardDisplayRequiresUserAction: _savedKeyboardDisplayRequiresUserAction];
     [self visitSource];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"minkasuPayByAttribute" object:nil userInfo:nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"minkasuPayByMethod" object:nil userInfo:nil];
   }
 #if !TARGET_OS_OSX
   // Allow this object to recognize gestures

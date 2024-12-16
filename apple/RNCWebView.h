@@ -100,6 +100,9 @@ shouldStartLoadForRequest:(NSMutableDictionary<NSString *, id> *_Nonnull)request
 #if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 150000 /* iOS 15 */
 @property (nonatomic, assign) RNCWebViewPermissionGrantType mediaCapturePermissionGrantType;
 #endif
+@property (nonatomic, copy) NSString *minkasu2FAConfig;
+@property (nonatomic, strong) RCTDirectEventBlock onMinkasu2FAInit;
+@property (nonatomic, strong) RCTDirectEventBlock onMinkasu2FAResult;
 
 + (void)setClientAuthenticationCredential:(nullable NSURLCredential*)credential;
 + (void)setCustomCertificatesForHost:(nullable NSDictionary *)certificates;

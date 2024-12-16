@@ -84,6 +84,8 @@ import com.reactnativecommunity.webview.events.TopLoadingFinishEvent;
 import com.reactnativecommunity.webview.events.TopLoadingProgressEvent;
 import com.reactnativecommunity.webview.events.TopLoadingStartEvent;
 import com.reactnativecommunity.webview.events.TopMessageEvent;
+import com.reactnativecommunity.webview.events.TopMinkasu2FAInitEvent;
+import com.reactnativecommunity.webview.events.TopMinkasu2FAResultEvent;
 import com.reactnativecommunity.webview.events.TopShouldStartLoadWithRequestEvent;
 import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
 
@@ -145,6 +147,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
   public static final int COMMAND_CLEAR_CACHE = 1001;
   public static final int COMMAND_CLEAR_HISTORY = 1002;
 
+  public static final int COMMAND_CONFIG_MINKASU2FA = 24680;
+
   protected static final String REACT_CLASS = "RNCWebView";
   protected static final String HTML_ENCODING = "UTF-8";
   protected static final String HTML_MIME_TYPE = "text/html";
@@ -190,6 +194,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
   @TargetApi(Build.VERSION_CODES.LOLLIPOP)
   protected WebView createViewInstance(ThemedReactContext reactContext) {
     RNCWebView webView = createRNCWebViewInstance(reactContext);
+    Minkasu2FAUtil.setUserAgent(webView);
     setupWebChromeClient(reactContext, webView);
     reactContext.addLifecycleEventListener(webView);
     mWebViewConfig.configWebView(webView);
@@ -437,12 +442,12 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
 
   protected void setUserAgentString(WebView view) {
     if(mUserAgent != null) {
-      view.getSettings().setUserAgentString(mUserAgent);
+      view.getSettings().setUserAgentString(Minkasu2FAUtil.appendMinkasu2faUserAgent(mUserAgent));
     } else if(mUserAgentWithApplicationName != null) {
-      view.getSettings().setUserAgentString(mUserAgentWithApplicationName);
+      view.getSettings().setUserAgentString(Minkasu2FAUtil.appendMinkasu2faUserAgent(mUserAgentWithApplicationName));
     } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
       // handle unsets of `userAgent` prop as long as device is >= API 17
-      view.getSettings().setUserAgentString(WebSettings.getDefaultUserAgent(view.getContext()));
+      view.getSettings().setUserAgentString(Minkasu2FAUtil.appendMinkasu2faUserAgent(WebSettings.getDefaultUserAgent(view.getContext())));
     }
   }
 
@@ -569,7 +574,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
             String key = iter.nextKey();
             if ("user-agent".equals(key.toLowerCase(Locale.ENGLISH))) {
               if (view.getSettings() != null) {
-                view.getSettings().setUserAgentString(headers.getString(key));
+                view.getSettings().setUserAgentString(Minkasu2FAUtil.appendMinkasu2faUserAgent(headers.getString(key)));
               }
             } else {
               headerMap.put(key, headers.getString(key));
@@ -677,6 +682,11 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     view.getSettings().setMinimumFontSize(fontSize);
   }
 
+  @ReactProp(name = "minkasu2FAConfig")
+  public void setMinkasu2FAConfig(WebView view, @Nullable String config) {
+    getModule((ReactContext) view.getContext()).initializeMinkasuSDK(view, config, Minkasu2FAUtil.INIT_BY_PROPERTY);
+  }
+
   @Override
   protected void addEventEmitters(ThemedReactContext reactContext, WebView view) {
     // Do not register default touch emitter and let WebView implementation handle touches
@@ -701,6 +711,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
     export.put(ScrollEventType.getJSEventName(ScrollEventType.SCROLL), MapBuilder.of("registrationName", "onScroll"));
     export.put(TopHttpErrorEvent.EVENT_NAME, MapBuilder.of("registrationName", "onHttpError"));
     export.put(TopRenderProcessGoneEvent.EVENT_NAME, MapBuilder.of("registrationName", "onRenderProcessGone"));
+    export.put(TopMinkasu2FAInitEvent.EVENT_NAME, MapBuilder.of("registrationName", "onMinkasu2FAInit"));
+    export.put(TopMinkasu2FAResultEvent.EVENT_NAME, MapBuilder.of("registrationName", "onMinkasu2FAResult"));
+
     return export;
   }
 
@@ -719,6 +732,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
       .put("clearFormData", COMMAND_CLEAR_FORM_DATA)
       .put("clearCache", COMMAND_CLEAR_CACHE)
       .put("clearHistory", COMMAND_CLEAR_HISTORY)
+      .put("initMinkasu2FA", COMMAND_CONFIG_MINKASU2FA)
       .build();
   }
 
@@ -780,6 +794,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
         break;
       case "clearHistory":
         root.clearHistory();
+        break;
+      case "initMinkasu2FA":
+        String config = "";
+        if (args != null) {
+          config = args.getString(0);
+        }
+        getModule((ReactContext) root.getContext()).initializeMinkasuSDK(root, config, Minkasu2FAUtil.INIT_BY_METHOD);
         break;
     }
     super.receiveCommand(root, commandId, args);

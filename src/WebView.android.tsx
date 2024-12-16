@@ -24,13 +24,16 @@ import {
   AndroidWebViewProps,
   NativeWebViewAndroid,
 } from './WebViewTypes';
+import {
+  type Minkasu2FAConstants
+} from './WebViewTypes';
 
 import styles from './WebView.styles';
 
 const codegenNativeCommands = codegenNativeCommandsUntyped as <T extends {}>(options: { supportedCommands: (keyof T)[] }) => T;
 
 const Commands = codegenNativeCommands({
-  supportedCommands: ['goBack', 'goForward', 'reload', 'stopLoading', 'injectJavaScript', 'requestFocus', 'postMessage', 'clearFormData', 'clearCache', 'clearHistory', 'loadUrl'],
+  supportedCommands: ['goBack', 'goForward', 'reload', 'stopLoading', 'injectJavaScript', 'requestFocus', 'postMessage', 'clearFormData', 'clearCache', 'clearHistory', 'loadUrl','initMinkasu2FA'],
 });
 
 const { resolveAssetSource } = Image;
@@ -73,6 +76,9 @@ const WebViewComponent = forwardRef<{}, AndroidWebViewProps>(({
   source,
   nativeConfig,
   onShouldStartLoadWithRequest: onShouldStartLoadWithRequestProp,
+  minkasu2FAConfig,
+  onMinkasu2FAInit,
+  onMinkasu2FAResult,
   ...otherProps
 }, ref) => {
   const messagingModuleName = useRef<string>(`WebViewMessageHandler${uniqueRef += 1}`).current;
@@ -88,7 +94,7 @@ const WebViewComponent = forwardRef<{}, AndroidWebViewProps>(({
     }
   }, []);
 
-  const { onLoadingStart, onShouldStartLoadWithRequest, onMessage, viewState, setViewState, lastErrorEvent, onHttpError, onLoadingError, onLoadingFinish, onLoadingProgress, onRenderProcessGone } = useWebWiewLogic({
+  const { onLoadingStart, onShouldStartLoadWithRequest, onMessage, viewState, setViewState, lastErrorEvent, onHttpError, onLoadingError, onLoadingFinish, onLoadingProgress, onRenderProcessGone, onMinkasu2FAInitilaization, onMinkasu2FAResultAction } = useWebWiewLogic({
     onNavigationStateChange,
     onLoad,
     onError,
@@ -102,6 +108,8 @@ const WebViewComponent = forwardRef<{}, AndroidWebViewProps>(({
     originWhitelist,
     onShouldStartLoadWithRequestProp,
     onShouldStartLoadWithRequestCallback,
+    onMinkasu2FAInit,
+    onMinkasu2FAResult
   })
 
   useImperativeHandle(ref, () => ({
@@ -119,6 +127,7 @@ const WebViewComponent = forwardRef<{}, AndroidWebViewProps>(({
     clearFormData: () => Commands.clearFormData(webViewRef.current),
     clearCache: (includeDiskFiles: boolean) => Commands.clearCache(webViewRef.current, includeDiskFiles),
     clearHistory: () => Commands.clearHistory(webViewRef.current),
+    initMinkasu2FA: (mk2FAConfig: Object) => Commands.initMinkasu2FA(webViewRef.current, JSON.stringify(mk2FAConfig))
   }), [setViewState, webViewRef]);
 
   const directEventCallbacks = useMemo(() => ({
@@ -161,6 +170,11 @@ const WebViewComponent = forwardRef<{}, AndroidWebViewProps>(({
   const NativeWebView
     = (nativeConfig?.component as (typeof NativeWebViewAndroid | undefined)) || RNCWebView;
 
+  let mk2FAConfig;
+  if (minkasu2FAConfig) {
+    mk2FAConfig = JSON.stringify(minkasu2FAConfig);
+  }
+
   const webView = <NativeWebView
     key="webViewKey"
     {...otherProps}
@@ -194,6 +208,9 @@ const WebViewComponent = forwardRef<{}, AndroidWebViewProps>(({
     setBuiltInZoomControls={setBuiltInZoomControls}
     setDisplayZoomControls={setDisplayZoomControls}
     nestedScrollEnabled={nestedScrollEnabled}
+    minkasu2FAConfig={mk2FAConfig}
+    onMinkasu2FAInit={onMinkasu2FAInitilaization}
+    onMinkasu2FAResult={onMinkasu2FAResultAction}
     {...nativeConfig?.props}
   />
 
@@ -209,6 +226,13 @@ const WebViewComponent = forwardRef<{}, AndroidWebViewProps>(({
 const isFileUploadSupported: () => Promise<boolean>
   = NativeModules.RNCWebView.isFileUploadSupported();
 
-const WebView = Object.assign(WebViewComponent, {isFileUploadSupported});
+const { getConstants } = NativeModules.RNCWebView;
+
+// Minkasu2FA
+const { getAvailableMinkasu2FAOperations, performMinkasu2FAOperation } = NativeModules.RNCWebView;
+const Minkasu2FAConstant: Minkasu2FAConstants = getConstants().MINKASU2FA_CONSTANTS;
+const Minkasu2FA = { getAvailableMinkasu2FAOperations, performMinkasu2FAOperation, Constants: Minkasu2FAConstant };
+
+const WebView = Object.assign(WebViewComponent, { isFileUploadSupported }, { Minkasu2FA });
 
 export default WebView;

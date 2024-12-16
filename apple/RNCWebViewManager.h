@@ -10,4 +10,5 @@
 @interface RNCWebViewManager : RCTViewManager
 @property (nonatomic, copy) NSArray<NSDictionary *> * _Nullable menuItems;
 @property (nonatomic, copy) RCTDirectEventBlock onCustomMenuSelection;
+@property (nonatomic,assign) BOOL isSkipInit;
 @end

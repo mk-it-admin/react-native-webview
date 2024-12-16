@@ -22,6 +22,7 @@ import android.util.Log;
 import android.webkit.MimeTypeMap;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebView;
 import android.widget.Toast;
 
 import com.facebook.react.bridge.ActivityEventListener;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static android.app.Activity.RESULT_OK;
@@ -53,6 +55,7 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule implements Acti
   private File outputImage;
   private File outputVideo;
   private DownloadManager.Request downloadRequest;
+  private final Minkasu2FAUtil minkasu2FAUtil;
 
   protected static class ShouldOverrideUrlLoadingLock {
     protected enum ShouldOverrideCallbackState {
@@ -120,11 +123,23 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule implements Acti
   public RNCWebViewModule(ReactApplicationContext reactContext) {
     super(reactContext);
     reactContext.addActivityEventListener(this);
+    minkasu2FAUtil = new Minkasu2FAUtil(reactContext);
   }
 
   @Override
   public String getName() {
     return MODULE_NAME;
+  }
+
+  @Nullable
+  @Override
+  public Map<String, Object> getConstants() {
+    Map<String, Object> exportConstant = super.getConstants();
+    if (exportConstant == null) {
+      exportConstant = new HashMap<>();
+    }
+    minkasu2FAUtil.setConstants(exportConstant);
+    return exportConstant;
   }
 
   @ReactMethod
@@ -148,6 +163,21 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule implements Acti
         lockObject.set(shouldStart ? ShouldOverrideUrlLoadingLock.ShouldOverrideCallbackState.DO_NOT_OVERRIDE : ShouldOverrideUrlLoadingLock.ShouldOverrideCallbackState.SHOULD_OVERRIDE);
         lockObject.notify();
       }
+    }
+  }
+
+  @ReactMethod
+  public void getAvailableMinkasu2FAOperations(final Promise promise) {
+    promise.resolve(minkasu2FAUtil.getAvailableMinkasu2FAOperations());
+  }
+
+  @ReactMethod
+  public void performMinkasu2FAOperation(String merchantCustomerId, String operationTypeStr, Promise promise) {
+    try {
+      minkasu2FAUtil.performMinkasu2faOperation(merchantCustomerId, operationTypeStr);
+      promise.resolve("Success");
+    } catch (Exception e) {
+      promise.reject(e);
     }
   }
 
@@ -546,5 +576,9 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule implements Acti
       throw new IllegalStateException("Tried to use permissions API but the host Activity doesn't implement PermissionAwareActivity.");
     }
     return (PermissionAwareActivity) activity;
+  }
+
+  void initializeMinkasuSDK(WebView view, String config, String initType){
+    Minkasu2FAUtil.initSDK(getCurrentActivity(), view,config,initType);
   }
 }
