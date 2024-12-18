@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 class Minkasu2FAUtil {
-  static final String RCT_MINKASU_2FA_SDK_VERSION = "2.0.0";
+  static final String RCT_MINKASU_2FA_SDK_VERSION = "2.0.11227";
   static final String INIT_BY_METHOD = "byMethod";
   static final String INIT_BY_PROPERTY = "byProperty";
 

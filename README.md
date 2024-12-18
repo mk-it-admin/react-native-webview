@@ -12,7 +12,7 @@ NOTE: This is a customized fork of the [react-native-webview](https://github.com
 To use this fork remove the original react-native-webview dependency from your package.json, then install the forked package as
 
 ```jsx
-npm install --save @mk-it-admin/react-native-webview
+npm install --save mk-it-admin/react-native-webview
 ```
 
 ## Core Maintainers - Sponsoring companies
