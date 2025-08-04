@@ -101,6 +101,18 @@ export type ShouldStartLoadRequestEvent = Readonly<{
   isTopFrame: boolean;
 }>;
 
+type Minkasu2FAInitEvent = Readonly<{
+  status: string,
+  initType: string,
+  errorCode?: string,
+  errorMessage?: string
+}>;
+
+type Minkasu2FAResultEvent = Readonly<{
+  infoType?: Int32,
+  data?: string
+}>;
+
 type ScrollEvent = Readonly<{
   contentInset: {
     bottom: Double;
@@ -294,6 +306,9 @@ export interface NativeProps extends ViewProps {
   userAgent?: string;
   injectedJavaScriptObject?: string;
   paymentRequestEnabled?: boolean;
+  minkasu2FAConfig?: string;
+  onMinkasu2FAInit?: DirectEventHandler<Minkasu2FAInitEvent>;
+  onMinkasu2FAResult?: DirectEventHandler<Minkasu2FAResultEvent>;
 }
 
 export interface NativeCommands {
@@ -309,6 +324,10 @@ export interface NativeCommands {
   postMessage: (
     viewRef: React.ElementRef<HostComponent<NativeProps>>,
     data: string
+  ) => void;
+  initMinkasu2FA: (
+    viewRef: React.ElementRef<HostComponent<NativeProps>>,
+    minkasu2FAConfig: string
   ) => void;
   // Android Only
   loadUrl: (
@@ -339,6 +358,7 @@ export const Commands = codegenNativeCommands<NativeCommands>({
     'clearFormData',
     'clearCache',
     'clearHistory',
+    'initMinkasu2FA'
   ],
 });
 

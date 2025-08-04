@@ -28,6 +28,9 @@ import {
   type WebViewMessageEvent,
   type ShouldStartLoadRequestEvent,
 } from './WebViewTypes';
+import {
+  type Minkasu2FAConstants
+} from './WebViewTypes';
 
 import styles from './WebView.styles';
 
@@ -96,6 +99,9 @@ const WebViewComponent = forwardRef<{}, AndroidWebViewProps>(
       nativeConfig,
       onShouldStartLoadWithRequest: onShouldStartLoadWithRequestProp,
       injectedJavaScriptObject,
+      minkasu2FAConfig,
+      onMinkasu2FAInit,
+      onMinkasu2FAResult,
       ...otherProps
     },
     ref
@@ -134,6 +140,8 @@ const WebViewComponent = forwardRef<{}, AndroidWebViewProps>(
       onLoadingProgress,
       onOpenWindow,
       onRenderProcessGone,
+      onMinkasu2FAInitilaization,
+      onMinkasu2FAResultAction
     } = useWebViewLogic({
       onNavigationStateChange,
       onLoad,
@@ -149,6 +157,8 @@ const WebViewComponent = forwardRef<{}, AndroidWebViewProps>(
       originWhitelist,
       onShouldStartLoadWithRequestProp,
       onShouldStartLoadWithRequestCallback,
+      onMinkasu2FAInit,
+      onMinkasu2FAResult
     });
 
     useImperativeHandle(
@@ -179,6 +189,8 @@ const WebViewComponent = forwardRef<{}, AndroidWebViewProps>(
           Commands.clearCache(webViewRef.current, includeDiskFiles),
         clearHistory: () =>
           webViewRef.current && Commands.clearHistory(webViewRef.current),
+        initMinkasu2FA: (mk2FAConfig: Object) =>
+          webViewRef.current && Commands.initMinkasu2FA(webViewRef.current, JSON.stringify(mk2FAConfig))
       }),
       [setViewState, webViewRef]
     );
@@ -276,6 +288,11 @@ const WebViewComponent = forwardRef<{}, AndroidWebViewProps>(
           )
         : sourceResolved;
 
+    let mk2FAConfig;
+    if (minkasu2FAConfig) {
+      mk2FAConfig = JSON.stringify(minkasu2FAConfig);
+    }
+
     const webView = (
       <NativeWebView
         key="webViewKey"
@@ -313,6 +330,9 @@ const WebViewComponent = forwardRef<{}, AndroidWebViewProps>(
         setDisplayZoomControls={setDisplayZoomControls}
         nestedScrollEnabled={nestedScrollEnabled}
         injectedJavaScriptObject={JSON.stringify(injectedJavaScriptObject)}
+        minkasu2FAConfig={mk2FAConfig}
+        onMinkasu2FAInit={onMinkasu2FAInitilaization}
+        onMinkasu2FAResult={onMinkasu2FAResultAction}
         {...nativeConfig?.props}
       />
     );
@@ -328,7 +348,13 @@ const WebViewComponent = forwardRef<{}, AndroidWebViewProps>(
 
 // native implementation should return "true" only for Android 5+
 const { isFileUploadSupported } = RNCWebViewModule;
+const { getConstants } = RNCWebViewModule;
 
-const WebView = Object.assign(WebViewComponent, { isFileUploadSupported });
+// Minkasu2FA
+const { getAvailableMinkasu2FAOperations, performMinkasu2FAOperation } = RNCWebViewModule;
+const Minkasu2FAConstant: Minkasu2FAConstants = getConstants().MINKASU2FA_CONSTANTS;
+const Minkasu2FA = { getAvailableMinkasu2FAOperations, performMinkasu2FAOperation, Constants: Minkasu2FAConstant };
+
+const WebView = Object.assign(WebViewComponent, { isFileUploadSupported }, { Minkasu2FA });
 
 export default WebView;

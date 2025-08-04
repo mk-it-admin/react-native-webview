@@ -6,6 +6,8 @@ export { FileDownload, WebViewMessageEvent, WebViewNavigation } from "./lib/WebV
 
 export type WebViewProps = IOSWebViewProps & AndroidWebViewProps & WindowsWebViewProps;
 
+export { Minkasu2FAConstants, Minkasu2FAInitEvent, Minkasu2FAResultEvent} from "./lib/WebViewTypes";
+
 declare class WebView<P = {}> extends Component<WebViewProps & P> {
     /**
      * Go back one page in the webview's history.
@@ -58,6 +60,8 @@ declare class WebView<P = {}> extends Component<WebViewProps & P> {
      * Tells this WebView to clear its internal back/forward list.
      */
     clearHistory?: () => void;
+
+    initMinkasu2FA?: (config: string) => void;
 }
 
 export {WebView};

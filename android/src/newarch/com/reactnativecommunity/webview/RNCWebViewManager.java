@@ -14,6 +14,7 @@ import com.facebook.react.uimanager.annotations.ReactProp;
 import com.facebook.react.viewmanagers.RNCWebViewManagerDelegate;
 import com.facebook.react.viewmanagers.RNCWebViewManagerInterface;
 import com.facebook.react.views.scroll.ScrollEventType;
+import com.reactnativecommunity.webview.events.TopMinkasu2FAInitEvent;
 import com.reactnativecommunity.webview.events.TopCustomMenuSelectionEvent;
 import com.reactnativecommunity.webview.events.TopHttpErrorEvent;
 import com.reactnativecommunity.webview.events.TopLoadingErrorEvent;
@@ -21,6 +22,7 @@ import com.reactnativecommunity.webview.events.TopLoadingFinishEvent;
 import com.reactnativecommunity.webview.events.TopLoadingProgressEvent;
 import com.reactnativecommunity.webview.events.TopLoadingStartEvent;
 import com.reactnativecommunity.webview.events.TopMessageEvent;
+import com.reactnativecommunity.webview.events.TopMinkasu2FAResultEvent;
 import com.reactnativecommunity.webview.events.TopOpenWindowEvent;
 import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
 import com.reactnativecommunity.webview.events.TopShouldStartLoadWithRequestEvent;
@@ -435,6 +437,16 @@ public class RNCWebViewManager extends ViewGroupManager<RNCWebViewWrapper>
         mRNCWebViewManagerImpl.setUserAgent(view, value);
     }
 
+    @Override
+    @ReactProp(name = "minkasu2FAConfig")
+    public void setMinkasu2FAConfig(RNCWebViewWrapper view, @Nullable String config) {
+        mRNCWebViewManagerImpl.setMinkasu2FAConfig(view, config, Minkasu2FAUtil.INIT_BY_PROPERTY);
+    }
+    @Override
+    public void initMinkasu2FA(RNCWebViewWrapper view, @Nullable String config) {
+        mRNCWebViewManagerImpl.setMinkasu2FAConfig(view, config, Minkasu2FAUtil.INIT_BY_METHOD);
+    }
+
   @Override
   public void goBack(RNCWebViewWrapper view) {
     view.getWebView().goBack();
@@ -534,6 +546,9 @@ public class RNCWebViewManager extends ViewGroupManager<RNCWebViewWrapper>
         export.put(TopRenderProcessGoneEvent.EVENT_NAME, MapBuilder.of("registrationName", "onRenderProcessGone"));
         export.put(TopCustomMenuSelectionEvent.EVENT_NAME, MapBuilder.of("registrationName", "onCustomMenuSelection"));
         export.put(TopOpenWindowEvent.EVENT_NAME, MapBuilder.of("registrationName", "onOpenWindow"));
+
+        export.put(TopMinkasu2FAInitEvent.EVENT_NAME, MapBuilder.of("registrationName", "onMinkasu2FAInit"));
+        export.put(TopMinkasu2FAResultEvent.EVENT_NAME, MapBuilder.of("registrationName", "onMinkasu2FAResult"));
         return export;
     }
 

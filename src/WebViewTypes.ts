@@ -24,6 +24,8 @@ type WebViewCommands =
 
 type AndroidWebViewCommands = 'clearHistory' | 'clearFormData';
 
+type Minkasu2FAWebViewCommands = 'initMinkasu2FA'
+
 interface RNCWebViewUIManager<Commands extends string> extends UIManagerStatic {
   getViewManagerConfig: (name: string) => {
     Commands: { [key in Commands]: number };
@@ -31,9 +33,9 @@ interface RNCWebViewUIManager<Commands extends string> extends UIManagerStatic {
 }
 
 export type RNCWebViewUIManagerAndroid = RNCWebViewUIManager<
-  WebViewCommands | AndroidWebViewCommands
+  WebViewCommands | AndroidWebViewCommands | Minkasu2FAWebViewCommands
 >;
-export type RNCWebViewUIManagerIOS = RNCWebViewUIManager<WebViewCommands>;
+export type RNCWebViewUIManagerIOS = RNCWebViewUIManager<WebViewCommands | Minkasu2FAWebViewCommands>;
 export type RNCWebViewUIManagerMacOS = RNCWebViewUIManager<WebViewCommands>;
 export type RNCWebViewUIManagerWindows = RNCWebViewUIManager<WebViewCommands>;
 
@@ -134,6 +136,17 @@ export interface WebViewOpenWindow {
   targetUrl: string;
 }
 
+export interface Minkasu2FAInit {
+  status: string,
+  initType: string,
+  errorCode?: string,
+  errorMessage?: string
+}
+export interface Minkasu2FAResult {
+  infoType?: number,
+  data?: string
+}
+
 export type WebViewEvent = NativeSyntheticEvent<WebViewNativeEvent>;
 
 export type WebViewProgressEvent =
@@ -160,6 +173,9 @@ export type WebViewRenderProcessGoneEvent =
 export type WebViewOpenWindowEvent = NativeSyntheticEvent<WebViewOpenWindow>;
 
 export type WebViewScrollEvent = NativeSyntheticEvent<NativeScrollEvent>;
+
+export type Minkasu2FAInitEvent = NativeSyntheticEvent<Minkasu2FAInit>;
+export type Minkasu2FAResultEvent = NativeSyntheticEvent<Minkasu2FAResult>;
 
 export type DataDetectorTypes =
   | 'phoneNumber'
@@ -777,6 +793,21 @@ export interface IOSWebViewProps extends WebViewSharedProps {
    * @platform ios
    */
   fraudulentWebsiteWarningEnabled?: boolean;
+
+  /**
+   * An Object value that indicates the Minkasu2FA config details to enables flow  
+   * @platform ios
+   */
+  minkasu2FAConfig?: Object;
+  /**
+   * Function that is invoked when the Minkasu2FA sdk initialized.
+   */
+  onMinkasu2FAInit?: (event: Minkasu2FAInitEvent) => void;
+  /**
+   * Function that is invoked when the Minkasu2FA sdk send the status of the transaction flow 
+   * such as event, progress and result.
+   */
+  onMinkasu2FAResult?: (event: Minkasu2FAResultEvent) => void;
 }
 
 export interface MacOSWebViewProps extends WebViewSharedProps {
@@ -1160,6 +1191,21 @@ export interface AndroidWebViewProps extends WebViewSharedProps {
    * @platform android
    */
   allowsProtectedMedia?: boolean;
+
+  /**
+   * An Object value that indicates the Minkasu2FA config details to enables flow  
+   * @platform android
+   */
+  minkasu2FAConfig?: Object;
+  /**
+   * Function that is invoked when the Minkasu2FA sdk initialized.
+   */
+  onMinkasu2FAInit?: (event: Minkasu2FAInitEvent) => void;
+  /**
+   * Function that is invoked when the Minkasu2FA sdk send the status of the transaction flow 
+   * such as event, progress and result.
+   */
+  onMinkasu2FAResult?: (event: Minkasu2FAResultEvent) => void;
 }
 
 export interface WebViewSharedProps extends ViewProps {
@@ -1349,4 +1395,56 @@ export interface WebViewSharedProps extends ViewProps {
    * Enables support for the Payment Request API for the WebView
    */
   paymentRequestEnabled?: boolean;
+}
+
+export interface Minkasu2FAConstants  {
+  CHANGE_PIN: string,
+  ENABLE_BIOMETRICS: string,
+  DISABLE_BIOMETRICS: string,
+  MERCHANT_ID: string,
+  MERCHANT_TOKEN: string,
+  CUSTOMER_ID: string,
+  PARTNER_MERCHANT_INFO: string,
+  PARTNER_MERCHANT_ID: string,
+  PARTNER_MERCHANT_NAME: string,
+  PARTNER_TRANSACTION_ID: string,
+  CUSTOMER_INFO: string,
+  CUSTOMER_FIRST_NAME: string,
+  CUSTOMER_LAST_NAME: string,
+  CUSTOMER_EMAIL: string,
+  CUSTOMER_PHONE: string,
+  CUSTOMER_ADDRESS_INFO: string,
+  CUSTOMER_ADDRESS_LINE_1: string,
+  CUSTOMER_ADDRESS_LINE_2: string,
+  CUSTOMER_ADDRESS_CITY: string,
+  CUSTOMER_ADDRESS_STATE: string,
+  CUSTOMER_ADDRESS_COUNTRY: string,
+  CUSTOMER_ADDRESS_ZIP_CODE: string,
+  CUSTOMER_ORDER_INFO: string,
+  CUSTOMER_ORDER_ID: string,
+  CUSTOMER_BILLING_CATEGORY: string,
+  CUSTOMER_CUSTOM_DATA: string,
+  SDK_MODE_SANDBOX: string,
+  STATUS: string,
+  STATUS_SUCCESS: string,
+  STATUS_FAILURE: string,
+  ERROR_MESSAGE: string,
+  ERROR_CODE: string,
+  INIT_TYPE: string,
+  INIT_BY_METHOD: string,
+  INIT_BY_ATTRIBUTE: string,
+  SKIP_INIT: string,
+  MINKASU_2FA_USER_AGENT: string
+  RESULT_INFO_TYPE: string,
+  RESULT_DATA: string,
+  INFO_TYPE_EVENT: number,
+  INFO_TYPE_RESULT: number,
+  INFO_TYPE_PROGRESS: number,
+
+  // iOS Only
+  NAVIGATION_BAR_COLOR?: string,
+  NAVIGATION_BAR_TEXT_COLOR?: string,
+  DARK_MODE_NAVIGATION_BAR_COLOR?:string,
+  DARK_MODE_NAVIGATION_BAR_TEXT_COLOR?:string,
+  SUPPORT_DARK_MODE?: boolean
 }

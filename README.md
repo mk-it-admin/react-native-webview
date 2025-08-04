@@ -5,7 +5,13 @@
 [![NPM Version](https://img.shields.io/npm/v/react-native-webview.svg?style=flat-square)](https://www.npmjs.com/package/react-native-webview)
 ![Npm Downloads](https://img.shields.io/npm/dm/react-native-webview.svg)
 
-**React Native WebView** is a community-maintained WebView component for React Native. It is intended to be a replacement for the built-in WebView (which was [removed from core](https://github.com/react-native-community/discussions-and-proposals/pull/3)).
+NOTE: This is a customized fork of the [react-native-webview](https://github.com/react-native-webview/react-native-webview) library.
+
+To use this fork remove the original react-native-webview dependency from your package.json, then install the forked package as
+
+```jsx
+npm install --save mk-it-admin/react-native-webview
+```
 
 ### Maintainers
 

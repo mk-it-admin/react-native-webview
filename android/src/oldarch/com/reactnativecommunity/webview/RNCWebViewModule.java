@@ -4,6 +4,8 @@ import android.app.DownloadManager;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import android.webkit.ValueCallback;
 
 import com.facebook.react.bridge.Promise;
@@ -11,6 +13,8 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.module.annotations.ReactModule;
+
+import java.util.Map;
 
 @ReactModule(name = RNCWebViewModuleImpl.NAME)
 public class RNCWebViewModule extends ReactContextBaseJavaModule {
@@ -21,6 +25,12 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule {
         mRNCWebViewModuleImpl = new RNCWebViewModuleImpl(reactContext);
     }
 
+    @Nullable
+    @Override
+    public Map<String, Object> getConstants() {
+        return mRNCWebViewModuleImpl.getConstants(super.getConstants());
+    }
+
     @ReactMethod
     public void isFileUploadSupported(final Promise promise) {
         promise.resolve(mRNCWebViewModuleImpl.isFileUploadSupported());
@@ -29,6 +39,16 @@ public class RNCWebViewModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void shouldStartLoadWithLockIdentifier(boolean shouldStart, double lockIdentifier) {
         mRNCWebViewModuleImpl.shouldStartLoadWithLockIdentifier(shouldStart, lockIdentifier);
+    }
+
+    @ReactMethod
+    public void getAvailableMinkasu2FAOperations(final Promise promise) {
+        promise.resolve(mRNCWebViewModuleImpl.getAvailableMinkasu2FAOperations());
+    }
+
+    @ReactMethod
+    public void performMinkasu2FAOperation(String merchantCustomerId, String operationTypeStr, String themeData, Promise promise) {
+        mRNCWebViewModuleImpl.performMinkasu2FAOperation(merchantCustomerId, operationTypeStr, promise);
     }
 
     public void startPhotoPickerIntent(ValueCallback<Uri> filePathCallback, String acceptType) {

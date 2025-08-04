@@ -26,10 +26,12 @@ import android.widget.Toast;
 
 import com.facebook.common.activitylistener.ActivityListenerManager;
 import com.facebook.react.bridge.ActivityEventListener;
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.PermissionAwareActivity;
 import com.facebook.react.modules.core.PermissionListener;
@@ -40,6 +42,7 @@ import java.lang.SecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static android.app.Activity.RESULT_OK;
@@ -59,10 +62,12 @@ public class RNCWebViewModuleImpl implements ActivityEventListener {
     private ValueCallback<Uri[]> mFilePathCallback;
     private File mOutputImage;
     private File mOutputVideo;
+    private final Minkasu2FAUtil minkasu2FAUtil;
 
     public RNCWebViewModuleImpl(ReactApplicationContext context) {
         mContext = context;
         context.addActivityEventListener(this);
+        minkasu2FAUtil = new Minkasu2FAUtil(context);
     }
 
     @Override
@@ -550,5 +555,27 @@ public class RNCWebViewModuleImpl implements ActivityEventListener {
             throw new IllegalStateException("Tried to use permissions API but the host Activity doesn't implement PermissionAwareActivity.");
         }
         return (PermissionAwareActivity) activity;
+    }
+
+    @Nullable
+    public Map<String, Object> getConstants(Map<String, Object> exportConstant) {
+        if (exportConstant == null) {
+            exportConstant = new HashMap<>();
+        }
+        minkasu2FAUtil.setConstants(exportConstant);
+        return exportConstant;
+    }
+
+    public WritableMap getAvailableMinkasu2FAOperations() {
+        return minkasu2FAUtil.getAvailableMinkasu2FAOperations();
+    }
+
+    public void performMinkasu2FAOperation(String merchantCustomerId, String operationTypeStr, Promise promise) {
+        try {
+            minkasu2FAUtil.performMinkasu2faOperation(merchantCustomerId, operationTypeStr);
+            promise.resolve("Success");
+        } catch (Exception e) {
+            promise.reject(e);
+        }
     }
 }

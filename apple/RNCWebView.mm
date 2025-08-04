@@ -244,6 +244,29 @@ auto stringToOnLoadingFinishNavigationTypeEnum(std::string value) {
                 webViewEventEmitter->onHttpError(data);
             }
         };
+        _view.onMinkasu2FAInit = [self](NSDictionary *dictionary) {
+            if (_eventEmitter) {
+                auto webViewEventEmitter = std::static_pointer_cast<RNCWebViewEventEmitter const>(_eventEmitter);
+                facebook::react::RNCWebViewEventEmitter::OnMinkasu2FAInit data = {
+                    .status = std::string([[dictionary valueForKey:@"status"] UTF8String]),
+                    .initType = std::string([[dictionary valueForKey:@"initType"] UTF8String]),
+                    .errorCode = std::string([[dictionary valueForKey:@"errorCode"] UTF8String]),
+                    .errorMessage = std::string([[dictionary valueForKey:@"errorMessage"] UTF8String]),
+                };
+                webViewEventEmitter->onMinkasu2FAInit(data);
+            }
+        };
+        _view.onMinkasu2FAResult = [self](NSDictionary *dictionary) {
+            if (_eventEmitter) {
+                auto webViewEventEmitter = std::static_pointer_cast<RNCWebViewEventEmitter const>(_eventEmitter);
+                facebook::react::RNCWebViewEventEmitter::OnMinkasu2FAResult data = {
+
+                    .infoType = int([[dictionary valueForKey:@"infoType"] intValue]),
+                    .data = std::string([[dictionary valueForKey:@"data"] UTF8String]),
+                };
+                webViewEventEmitter->onMinkasu2FAResult(data);
+            }
+        };
         self.contentView = _view;
     }
     return self;
@@ -269,6 +292,7 @@ auto stringToOnLoadingFinishNavigationTypeEnum(std::string value) {
         _view.name = RCTNSStringFromString(newViewProps.name);      \
     }
 
+    REMAP_WEBVIEW_STRING_PROP(minkasu2FAConfig)
     REMAP_WEBVIEW_PROP(scrollEnabled)
     REMAP_WEBVIEW_STRING_PROP(injectedJavaScript)
     REMAP_WEBVIEW_STRING_PROP(injectedJavaScriptBeforeContentLoaded)
@@ -537,6 +561,10 @@ Class<RCTComponentViewProtocol> RNCWebViewCls(void)
 
 - (void)stopLoading {
     [_view stopLoading];
+}
+
+- (void)initMinkasu2FA:(nonnull NSString *)minkasu2FAConfig { 
+    [_view initMinkasu2FA:minkasu2FAConfig];
 }
 
 - (void)clearFormData {

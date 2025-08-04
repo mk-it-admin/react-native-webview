@@ -10,6 +10,8 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.module.annotations.ReactModule;
 
+import java.util.Map;
+
 @ReactModule(name = RNCWebViewModuleImpl.NAME)
 public class RNCWebViewModule extends NativeRNCWebViewModuleSpec {
     final private RNCWebViewModuleImpl mRNCWebViewModuleImpl;
@@ -27,6 +29,21 @@ public class RNCWebViewModule extends NativeRNCWebViewModuleSpec {
     @Override
     public void shouldStartLoadWithLockIdentifier(boolean shouldStart, double lockIdentifier) {
         mRNCWebViewModuleImpl.shouldStartLoadWithLockIdentifier(shouldStart, lockIdentifier);
+    }
+
+    @Override
+    public void getAvailableMinkasu2FAOperations(final Promise promise) {
+        promise.resolve(mRNCWebViewModuleImpl.getAvailableMinkasu2FAOperations());
+    }
+
+    @Override
+    public void performMinkasu2FAOperation(String merchantCustomerId, String operationTypeStr, String themeData, Promise promise) {
+        mRNCWebViewModuleImpl.performMinkasu2FAOperation(merchantCustomerId, operationTypeStr, promise);
+    }
+
+    @Override
+    protected Map<String, Object> getTypedExportedConstants() {
+        return mRNCWebViewModuleImpl.getConstants(null);
     }
 
     public void startPhotoPickerIntent(ValueCallback<Uri> filePathCallback, String acceptType) {

@@ -50,6 +50,7 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
     private val HTML_ENCODING = "UTF-8"
     private val HTML_MIME_TYPE = "text/html"
     private val HTTP_METHOD_POST = "POST"
+    private var mMinkasuConfig: String? = null
 
     // Use `webView.loadUrl("about:blank")` to reliably reset the view
     // state and release page resources (including any running JavaScript).
@@ -69,6 +70,7 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
     }
 
     fun createViewInstance(context: ThemedReactContext, webView: RNCWebView): RNCWebViewWrapper {
+        Minkasu2FAUtil.setUserAgent(webView)
         setupWebChromeClient(webView)
         context.addLifecycleEventListener(webView)
         mWebViewConfig.configWebView(webView)
@@ -246,13 +248,13 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
         val view = viewWrapper.webView
         when {
             mUserAgent != null -> {
-                view.settings.userAgentString = mUserAgent
+                view.settings.userAgentString = Minkasu2FAUtil.appendMinkasu2faUserAgent(mUserAgent)
             }
             mUserAgentWithApplicationName != null -> {
-                view.settings.userAgentString = mUserAgentWithApplicationName
+                view.settings.userAgentString = Minkasu2FAUtil.appendMinkasu2faUserAgent(mUserAgentWithApplicationName)
             }
             else -> {
-                view.settings.userAgentString = WebSettings.getDefaultUserAgent(view.context)
+                view.settings.userAgentString = Minkasu2FAUtil.appendMinkasu2faUserAgent(WebSettings.getDefaultUserAgent(view.context));
             }
         }
     }
@@ -283,6 +285,21 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
         webView.mWebChromeClient = null
     }
 
+    fun setMinkasu2FAConfig(viewWrapper: RNCWebViewWrapper, config: String?, initType: String) {
+        if (config != null && config.length > 0) {
+            val webView = viewWrapper.webView
+            if (mMinkasuConfig == null || !mMinkasuConfig.equals(config, true)) {
+                mMinkasuConfig = config
+                Minkasu2FAUtil.initSDK(
+                    webView.themedReactContext.currentActivity,
+                    webView,
+                    config,
+                    initType
+                )
+            }
+        }
+    }
+
     val COMMAND_GO_BACK = 1
     val COMMAND_GO_FORWARD = 2
     val COMMAND_RELOAD = 3
@@ -297,6 +314,9 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
     val COMMAND_CLEAR_CACHE = 1001
     val COMMAND_CLEAR_HISTORY = 1002
 
+    // Minkasu commands
+    val COMMAND_CONFIG_MINKASU2FA: Int = 24680
+
     fun getCommandsMap(): Map<String, Int>? {
       return MapBuilder.builder<String, Int>()
         .put("goBack", COMMAND_GO_BACK)
@@ -310,6 +330,7 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
         .put("clearFormData", COMMAND_CLEAR_FORM_DATA)
         .put("clearCache", COMMAND_CLEAR_CACHE)
         .put("clearHistory", COMMAND_CLEAR_HISTORY)
+        .put("initMinkasu2FA", COMMAND_CONFIG_MINKASU2FA)
         .build()
     }
 
@@ -352,6 +373,18 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
           webView.clearCache(includeDiskFiles)
         }
         "clearHistory" -> webView.clearHistory()
+        "initMinkasu2FA" -> {
+            var config: String? = null
+            if (args != null) {
+                config = args.getString(0)
+            }
+            Minkasu2FAUtil.initSDK(
+                webView.themedReactContext.currentActivity,
+                webView,
+                config,
+                Minkasu2FAUtil.INIT_BY_METHOD
+            )
+        }
       }
     }
 
@@ -432,7 +465,7 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
                         val name = headerCasted.get("name") ?: ""
                         val value = headerCasted.get("value") ?: ""
                         if ("user-agent" == name.lowercase(Locale.ENGLISH)) {
-                          view.settings.userAgentString = value
+                          view.settings.userAgentString = Minkasu2FAUtil.appendMinkasu2faUserAgent(value)
                         } else {
                           headerMap[name] = value
                         }
@@ -443,7 +476,7 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
                       while (iter.hasNextKey()) {
                         val key = iter.nextKey()
                         if ("user-agent" == key.lowercase(Locale.ENGLISH)) {
-                          view.settings.userAgentString = headers.getString(key)
+                          view.settings.userAgentString = Minkasu2FAUtil.appendMinkasu2faUserAgent(headers.getString(key))
                         } else {
                           headerMap[key] = headers.getString(key)
                         }
