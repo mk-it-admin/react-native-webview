@@ -8,7 +8,7 @@
 
 #ifndef Constants_h
 #define Constants_h
-#define REACT_NATIVE_MINKASU2FA_SDK_VERSION @"2.0.13150"
+#define REACT_NATIVE_MINKASU2FA_SDK_VERSION @"3.0.13150"
 #define MERCHANT_ID @"m_id"
 #define MERCHANT_TOKEN @"m_token"
 #define CUSTOMER_ID @"customer_id"
@@ -42,7 +42,7 @@
 #define DARK_MODE_NAVIGATION_BAR_TEXT_COLOR @"dark_mode_navigation_bar_text_color"
 #define SUPPORT_DARK_MODE @"support_dark_mode"
 #define IOS_THEME_OBJ @"ios_theme_obj"
-#define CUSTOM_DATA  @"custom_data"
+#define ORDER_DETAILS  @"order_details"
 #define BILLING_CATEGORY  @"billing_category"
 #define PARTNER_MERCHANT_INFO  @"partner_merchant_info"
 #define PARTNER_MERCHANT_ID  @"partner_merchant_id"
@@ -52,8 +52,6 @@
 #define RESULT_INFO_TYPE  @"infoType"
 #define RESULT_DATA  @"data"
 
-#define CHANGE_PIN @"changePin"
-#define ENABLE_BIOMETRICS @"enableBiometrics"
 #define DISABLE_BIOMETRICS @"disableBiometrics"
 
 #endif /* Constants_h */

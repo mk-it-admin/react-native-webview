@@ -1145,7 +1145,8 @@ RCTAutoInsetsProtocol>
             self->_onMinkasu2FAInit(@{@"status":status,@"initType":INIT_BY_METHOD,@"errorCode":@"0",@"errorMessage":@"" });
         }else{
             @try {
-                [Minkasu2FA initReactSDKWithWKWebView:_webView andConfiguration:self->minkasuConfig reactSDKVersion:REACT_NATIVE_MINKASU2FA_SDK_VERSION inViewController:nil error:&err];
+                NSString *hybridSDKDetails = [NSString stringWithFormat:@"{\"react_sdk_version\":\"%@\"}", REACT_NATIVE_MINKASU2FA_SDK_VERSION];
+                [Minkasu2FA initHybridSDKWithWKWebView:_webView andConfiguration:self->minkasuConfig hybridSDKDetails:hybridSDKDetails inViewController:nil error:&err];
                 self->_onMinkasu2FAInit(@{@"status":status,@"initType":INIT_BY_METHOD,@"errorCode":@"0",@"errorMessage":@"" });
             } @catch (NSException *exception) {
                 status = STATUS_FAILURE;
@@ -1696,7 +1697,8 @@ didFinishNavigation:(WKNavigation *)navigation
             _onMinkasu2FAInit(@{@"status":status,@"initType":INIT_BY_ATTRIBUTE,@"errorCode":@"0",@"errorMessage":@""});
         }else{
             @try {
-                [Minkasu2FA initReactSDKWithWKWebView:_webView andConfiguration:config reactSDKVersion:REACT_NATIVE_MINKASU2FA_SDK_VERSION inViewController:nil error:&err];
+                NSString *hybridSDKDetails = [NSString stringWithFormat:@"{\"react_sdk_version\":\"%@\"}", REACT_NATIVE_MINKASU2FA_SDK_VERSION];
+                [Minkasu2FA initHybridSDKWithWKWebView:_webView andConfiguration:config hybridSDKDetails:hybridSDKDetails inViewController:nil error:&err];
                 _onMinkasu2FAInit(@{@"status":status,@"initType":INIT_BY_ATTRIBUTE,@"errorCode":@"0",@"errorMessage":@"" });
             } @catch (NSException *exception) {
                 status = STATUS_FAILURE;
@@ -1785,8 +1787,8 @@ didFinishNavigation:(WKNavigation *)navigation
             if (minkasu2FAConfig[CUSTOMER_ORDER_INFO][BILLING_CATEGORY]) {
                 orderInfo.billingCategory = minkasu2FAConfig[CUSTOMER_ORDER_INFO][BILLING_CATEGORY];
             }
-            if (minkasu2FAConfig[CUSTOMER_ORDER_INFO][CUSTOM_DATA]) {
-                orderInfo.billingCategory = minkasu2FAConfig[CUSTOMER_ORDER_INFO][CUSTOM_DATA];
+            if (minkasu2FAConfig[CUSTOMER_ORDER_INFO][ORDER_DETAILS]) {
+                orderInfo.billingCategory = minkasu2FAConfig[CUSTOMER_ORDER_INFO][ORDER_DETAILS];
             }
         }
         

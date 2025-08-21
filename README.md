@@ -10,30 +10,9 @@ NOTE: This is a customized fork of the [react-native-webview](https://github.com
 To use this fork remove the original react-native-webview dependency from your package.json, then install the forked package as
 
 ```jsx
-npm install --save mk-it-admin/react-native-webview
+npm install --save https://github.com/mk-it-admin/react-native-webview.git#mk2fa_v13150
 ```
 
-### Maintainers
-
-**Many thanks to these companies** for providing us with time to work on open source.  
-Please note that maintainers spend a lot of free time working on this too so feel free to sponsor them, **it really makes a difference.**
-
-- [Thibault Malbranche](https://github.com/Titozzz) ([Twitter @titozzz](https://twitter.com/titozzz)) from [Brigad](https://www.brigad.co/en-gb/about-us)  
-[*Sponsor me* ❤️ !](https://github.com/sponsors/Titozzz)
-
-
-Windows and macOS are managed by Microsoft, notably:
-- [Alexander Sklar](https://github.com/asklar) ([Twitter @alexsklar](https://twitter.com/alexsklar)) from [React Native for Windows](https://microsoft.github.io/react-native-windows/)
-- [Chiara Mooney](https://github.com/chiaramooney) from [React Native for Windows @ Microsoft](https://microsoft.github.io/react-native-windows/)
-
-Shout-out to [Jamon Holmgren](https://github.com/jamonholmgren) from [Infinite Red](https://infinite.red) for helping a lot with the repo when he had more available time.
-
-### Disclaimer
-
-Maintaining WebView is very complex because it is often used for many different use cases (rendering SVGs, PDFs, login flows, and much more). We also support many platforms and both architectures of react-native.
-
-Since WebView was extracted from the React Native core, nearly 500 pull requests have been merged.  
-Considering that we have limited time, issues will mostly serve as a discussion place for the community, while **we will prioritize reviewing and merging pull requests.** 
 
 ### Platform compatibility
 
@@ -71,18 +50,8 @@ For more, read the [API Reference](./docs/Reference.md) and [Guide](./docs/Guide
 - If you're getting `Invariant Violation: Native component for "RNCWebView does not exist"` it likely means you forgot to run `react-native link` or there was some error with the linking process
 - If you encounter a build error during the task `:app:mergeDexRelease`, you need to enable multidex support in `android/app/build.gradle` as discussed in [this issue](https://github.com/react-native-webview/react-native-webview/issues/1344#issuecomment-650544648)
 
-#### Contributing
-
-Contributions are welcome, see [Contributing.md](https://github.com/react-native-webview/react-native-webview/blob/master/docs/Contributing.md)
 
 ### License
 
 MIT
 
-### Translations
-
-This readme is available in:
-
-- [Brazilian portuguese](docs/README.portuguese.md)
-- [French](docs/README.french.md)
-- [Italian](docs/README.italian.md)

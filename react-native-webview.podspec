@@ -43,5 +43,5 @@ Pod::Spec.new do |s|
       s.dependency "React-Core"
     end
   end
-  s.dependency "Minkasu2FA","4.1.1"
+  s.dependency "Minkasu2FA","5.0.0"
 end

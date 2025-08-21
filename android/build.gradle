@@ -107,5 +107,5 @@ dependencies {
     implementation 'com.facebook.react:react-native:+'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:${safeExtGet('kotlinVersion')}"
     implementation "androidx.webkit:webkit:${safeExtGet('webkitVersion')}"
-    implementation 'com.minkasu:minkasu-2fa:4.0.3'
+    implementation 'com.minkasu:minkasu-2fa:5.0.0'
 }

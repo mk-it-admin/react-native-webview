@@ -40,9 +40,7 @@ Class RNCWebViewModuleCls(void) {
     __block NSDictionary<NSString *, id> *minkasu2FAConstants;
     __weak __typeof(self) weakSelf = self;
     RCTUnsafeExecuteOnMainQueueSync(^{
-      minkasu2FAConstants = @{@"CHANGE_PIN":CHANGE_PIN,
-                             @"ENABLE_BIOMETRICS":ENABLE_BIOMETRICS,
-                             @"DISABLE_BIOMETRICS":DISABLE_BIOMETRICS,
+      minkasu2FAConstants = @{@"DISABLE_BIOMETRICS":DISABLE_BIOMETRICS,
                              @"MERCHANT_ID":MERCHANT_ID,
                              @"MERCHANT_TOKEN":MERCHANT_TOKEN,
                              @"CUSTOMER_ID":CUSTOMER_ID,
@@ -82,7 +80,7 @@ Class RNCWebViewModuleCls(void) {
                              @"PARTNER_MERCHANT_NAME":PARTNER_MERCHANT_NAME,
                              @"PARTNER_TRANSACTION_ID":PARTNER_TRANSACTION_ID,
                              @"CUSTOMER_BILLING_CATEGORY":BILLING_CATEGORY,
-                             @"CUSTOMER_CUSTOM_DATA":CUSTOM_DATA,
+                             @"CUSTOMER_ORDER_DETAILS":ORDER_DETAILS,
                              @"RESULT_INFO_TYPE":RESULT_INFO_TYPE,
                              @"RESULT_DATA":RESULT_DATA,
                              @"INFO_TYPE_RESULT":@(1),
@@ -137,11 +135,7 @@ RCT_REMAP_METHOD(performMinkasu2FAOperation,
     NSMutableDictionary *operations = [[NSMutableDictionary alloc] init];
     if([minkasu2FAOperations count] > 0){
         for (NSNumber *operation in minkasu2FAOperations){
-            if(operation.intValue == MINKASU2FA_CHANGE_PAYPIN) {
-                [operations setObject:@"CHANGE PIN" forKey:CHANGE_PIN];
-            }else if(operation.intValue == MINKASU2FA_ENABLE_BIOMETRY) {
-                [operations setObject:@"ENABLE BIOMETRICS" forKey:ENABLE_BIOMETRICS];
-            } else if(operation.intValue == MINKASU2FA_DISABLE_BIOMETRY) {
+            if(operation.intValue == MINKASU2FA_DISABLE_BIOMETRY) {
                 [operations setObject:@"DISABLE BIOMETRICS" forKey:DISABLE_BIOMETRICS];
             }
         }

@@ -31,7 +31,16 @@ import java.util.List;
 import java.util.Map;
 
 class Minkasu2FAUtil {
-    static final String RCT_MINKASU_2FA_SDK_VERSION = "2.0.13150";
+
+    static final String RCT_MINKASU_2FA_SDK_VERSION = "3.0.13150";
+    private static final String HYBRID_SDK_DETAILS = new JSONObject() {{
+        try {
+            put("react_sdk_version", RCT_MINKASU_2FA_SDK_VERSION);
+        } catch (JSONException e) {
+            Log.e("Minkasu2FAUtil", "Error: " + e.getMessage());
+        }
+    }}.toString();
+
     static final String INIT_BY_METHOD = "byMethod";
     static final String INIT_BY_PROPERTY = "byProperty";
 
@@ -59,7 +68,7 @@ class Minkasu2FAUtil {
     private static final String CUSTOMER_ORDER_INFO = "customer_order_info";
     private static final String ORDER_ID = "order_id";
     private static final String BILLING_CATEGORY = "billing_category";
-    private static final String CUSTOM_DATA = "custom_data";
+    private static final String ORDER_DETAILS = "order_details";
     private static final String PARTNER_MERCHANT_INFO = "partner_merchant_info";
     private static final String PARTNER_MERCHANT_ID = "partner_merchant_id";
     private static final String PARTNER_MERCHANT_NAME = "partner_merchant_name";
@@ -71,11 +80,9 @@ class Minkasu2FAUtil {
     private static final String RESULT_INFO_TYPE = "infoType";
     private static final String RESULT_DATA = "data";
 
-    private static final String CHANGE_PIN = "changePin";
-    private static final String ENABLE_BIOMETRICS = "enableBiometrics";
     private static final String DISABLE_BIOMETRICS = "disableBiometrics";
 
-    final private ReactApplicationContext mContext;
+    private final ReactApplicationContext mContext;
 
     Minkasu2FAUtil(ReactApplicationContext context) {
         this.mContext = context;
@@ -83,8 +90,6 @@ class Minkasu2FAUtil {
 
     void setConstants(@NonNull Map<String, Object> exportConstant) {
         HashMap<String, Object> minkasu2FAConstants = new HashMap<>();
-        minkasu2FAConstants.put("CHANGE_PIN", CHANGE_PIN);
-        minkasu2FAConstants.put("ENABLE_BIOMETRICS", ENABLE_BIOMETRICS);
         minkasu2FAConstants.put("DISABLE_BIOMETRICS", DISABLE_BIOMETRICS);
         minkasu2FAConstants.put("MERCHANT_ID", M_ID);
         minkasu2FAConstants.put("MERCHANT_TOKEN", M_TOKEN);
@@ -108,7 +113,7 @@ class Minkasu2FAUtil {
         minkasu2FAConstants.put("CUSTOMER_ORDER_INFO", CUSTOMER_ORDER_INFO);
         minkasu2FAConstants.put("CUSTOMER_ORDER_ID", ORDER_ID);
         minkasu2FAConstants.put("CUSTOMER_BILLING_CATEGORY", BILLING_CATEGORY);
-        minkasu2FAConstants.put("CUSTOMER_CUSTOM_DATA", CUSTOM_DATA);
+        minkasu2FAConstants.put("CUSTOMER_ORDER_DETAILS", ORDER_DETAILS);
         minkasu2FAConstants.put("SDK_MODE_SANDBOX", SDK_MODE_SANDBOX);
         minkasu2FAConstants.put("STATUS", STATUS);
         minkasu2FAConstants.put("STATUS_SUCCESS", SUCCESS);
@@ -133,16 +138,9 @@ class Minkasu2FAUtil {
         List<Minkasu2faOperationType> operationTypes = Minkasu2faSDK.getAvailableMinkasu2faOperations(mContext.getCurrentActivity());
         WritableMap operationTypeMap = Arguments.createMap();
         for (Minkasu2faOperationType operationType : operationTypes) {
-            switch (operationType) {
-                case CHANGE_PAYPIN:
-                    operationTypeMap.putString(CHANGE_PIN, operationType.getValue());
-                    break;
-                case ENABLE_BIOMETRICS:
-                    operationTypeMap.putString(ENABLE_BIOMETRICS, operationType.getValue());
-                    break;
-                case DISABLE_BIOMETRICS:
-                    operationTypeMap.putString(DISABLE_BIOMETRICS, operationType.getValue());
-                    break;
+            if (Minkasu2faOperationType.DISABLE_BIOMETRICS.equals(operationType)) {
+                operationTypeMap.putString(DISABLE_BIOMETRICS, operationType.getValue());
+                break;
             }
         }
         return operationTypeMap;
@@ -150,7 +148,7 @@ class Minkasu2FAUtil {
 
     void performMinkasu2faOperation(String merchantCustomerId, String operationTypeStr) throws Exception {
         String TAG = "PerformMKOp";
-        String errorMsg = "";
+        String errorMsg;
         if (merchantCustomerId == null || merchantCustomerId.isEmpty()) {
             errorMsg = "Invalid Merchant Customer Id";
             Log.e(TAG, errorMsg);
@@ -160,12 +158,7 @@ class Minkasu2FAUtil {
             List<Minkasu2faOperationType> operationTypes = Minkasu2faSDK.getAvailableMinkasu2faOperations(mContext.getCurrentActivity());
             Minkasu2faOperationType operationType = getMinkasu2faOperationType(operationTypeStr, operationTypes, TAG);
             try {
-                Minkasu2faSDK minkasu2faSDKInstance = Minkasu2faSDK.initReactSDKOperation(mContext.getCurrentActivity(), operationType, merchantCustomerId, RCT_MINKASU_2FA_SDK_VERSION, new Minkasu2faCallback() {
-                @Override
-                public void handleInfo(Minkasu2faCallbackInfo minkasu2faCallbackInfo) {
-                    Log.e("Minkasu2FAOperation", minkasu2faCallbackInfo.getData() != null ? minkasu2faCallbackInfo.getData().toString() : "No operation result");
-                }
-                });
+                Minkasu2faSDK minkasu2faSDKInstance = Minkasu2faSDK.initHybridSDKOperation(mContext.getCurrentActivity(), operationType, merchantCustomerId, HYBRID_SDK_DETAILS, minkasu2faCallbackInfo -> Log.e("Minkasu2FAOperation", minkasu2faCallbackInfo.getData() != null ? minkasu2faCallbackInfo.getData().toString() : "No operation result"));
                 minkasu2faSDKInstance.start();
             } catch (Exception e) {
                 Log.e(TAG, e.toString());
@@ -197,9 +190,6 @@ class Minkasu2FAUtil {
         return operationType;
     }
 
-    /**
-     * @noinspection deprecation
-     */
     static void setUserAgent(WebView view) {
         Minkasu2faSDK.setMinkasu2faUserAgent(view);
     }
@@ -230,70 +220,69 @@ class Minkasu2FAUtil {
             if (!JSONObject.NULL.equals(configJson) && configJson.length() > 0) {
                 boolean isSkipInit = configJson.has(SKIP_INIT) && configJson.getBoolean(SKIP_INIT);
                 if (!isSkipInit) {
-                    CustomerInfo customer = new CustomerInfo();
-                    if (configJson.has(CUSTOMER_INFO)) {
-                        JSONObject customerInfo = configJson.getJSONObject(CUSTOMER_INFO);
-                        if (!JSONObject.NULL.equals(customerInfo) && customerInfo.length() > 0) {
-                            customer.setFirstName(getJsonStringValue(customerInfo, C_FIRST_NAME, null));
-                            customer.setLastName(getJsonStringValue(customerInfo, C_LAST_NAME, null));
-                            customer.setEmail(getJsonStringValue(customerInfo, C_EMAIL, null));
-                            customer.setPhone(getJsonStringValue(customerInfo, C_PHONE, null));
+                    if (Minkasu2faSDK.isSupportedPlatform()) {
+                        CustomerInfo customer = new CustomerInfo();
+                        if (configJson.has(CUSTOMER_INFO)) {
+                            JSONObject customerInfo = configJson.getJSONObject(CUSTOMER_INFO);
+                            if (!JSONObject.NULL.equals(customerInfo) && customerInfo.length() > 0) {
+                                customer.setFirstName(getJsonStringValue(customerInfo, C_FIRST_NAME, null));
+                                customer.setLastName(getJsonStringValue(customerInfo, C_LAST_NAME, null));
+                                customer.setEmail(getJsonStringValue(customerInfo, C_EMAIL, null));
+                                customer.setPhone(getJsonStringValue(customerInfo, C_PHONE, null));
+                            }
+                            Address address = new Address();
+                            if (configJson.has(CUSTOMER_ADDRESS_INFO)) {
+                                JSONObject addressInfo = configJson.getJSONObject(CUSTOMER_ADDRESS_INFO);
+                                if (!JSONObject.NULL.equals(addressInfo) && addressInfo.length() > 0) {
+                                    address.setAddressLine1(getJsonStringValue(addressInfo, ADDRESS_LINE_1, null));
+                                    address.setAddressLine2(getJsonStringValue(addressInfo, ADDRESS_LINE_2, null));
+                                    address.setCity(getJsonStringValue(addressInfo, ADDRESS_CITY, null));
+                                    address.setState(getJsonStringValue(addressInfo, ADDRESS_STATE, null));
+                                    address.setCountry(getJsonStringValue(addressInfo, ADDRESS_COUNTRY, null));
+                                    address.setZipCode(getJsonStringValue(addressInfo, ADDRESS_ZIP_CODE, null));
+                                }
+                            }
+                            customer.setAddress(address);
                         }
-                        Address address = new Address();
-                        if (configJson.has(CUSTOMER_ADDRESS_INFO)) {
-                            JSONObject addressInfo = configJson.getJSONObject(CUSTOMER_ADDRESS_INFO);
-                            if (!JSONObject.NULL.equals(addressInfo) && addressInfo.length() > 0) {
-                                address.setAddressLine1(getJsonStringValue(addressInfo, ADDRESS_LINE_1, null));
-                                address.setAddressLine2(getJsonStringValue(addressInfo, ADDRESS_LINE_2, null));
-                                address.setCity(getJsonStringValue(addressInfo, ADDRESS_CITY, null));
-                                address.setState(getJsonStringValue(addressInfo, ADDRESS_STATE, null));
-                                address.setCountry(getJsonStringValue(addressInfo, ADDRESS_COUNTRY, null));
-                                address.setZipCode(getJsonStringValue(addressInfo, ADDRESS_ZIP_CODE, null));
+                        OrderInfo order = null;
+                        if (configJson.has(CUSTOMER_ORDER_INFO)) {
+                            JSONObject orderInfo = configJson.getJSONObject(CUSTOMER_ORDER_INFO);
+                            if (!JSONObject.NULL.equals(orderInfo) && orderInfo.length() > 0) {
+                                order = new OrderInfo();
+                                order.setOrderId(getJsonStringValue(orderInfo, ORDER_ID, null));
+                                order.setBillingCategory(getJsonStringValue(orderInfo, BILLING_CATEGORY, null));
+                                order.setOrderDetails(getJsonStringValue(orderInfo, ORDER_DETAILS, null));
                             }
                         }
-                        customer.setAddress(address);
-                    }
-                    OrderInfo order = null;
-                    if (configJson.has(CUSTOMER_ORDER_INFO)) {
-                        JSONObject orderInfo = configJson.getJSONObject(CUSTOMER_ORDER_INFO);
-                        if (!JSONObject.NULL.equals(orderInfo) && orderInfo.length() > 0) {
-                            order = new OrderInfo();
-                            order.setOrderId(getJsonStringValue(orderInfo, ORDER_ID, null));
-                            order.setBillingCategory(getJsonStringValue(orderInfo, BILLING_CATEGORY, null));
-                            order.setCustomData(getJsonStringValue(orderInfo, CUSTOM_DATA, null));
+
+                        String mId = getJsonStringValue(configJson, M_ID, null);
+                        String mToken = getJsonStringValue(configJson, M_TOKEN, null);
+                        String customerId = getJsonStringValue(configJson, CUSTOMER_ID, null);
+
+                        Config configObj;
+                        if (configJson.has(PARTNER_MERCHANT_INFO)) {
+                            JSONObject partnerMerchantInfo = configJson.getJSONObject(PARTNER_MERCHANT_INFO);
+                            PartnerInfo partnerInfo = null;
+                            if (!JSONObject.NULL.equals(partnerMerchantInfo) && partnerMerchantInfo.length() > 0) {
+                                partnerInfo = new PartnerInfo(
+                                        getJsonStringValue(partnerMerchantInfo, PARTNER_MERCHANT_ID, null),
+                                        getJsonStringValue(partnerMerchantInfo, PARTNER_MERCHANT_NAME, null),
+                                        getJsonStringValue(partnerMerchantInfo, PARTNER_TRANSACTION_ID, null)
+                                );
+                            }
+                            configObj = Config.getInstance(mId, mToken, customerId, partnerInfo, customer);
+                        } else {
+                            configObj = Config.getInstance(mId, mToken, customerId, customer);
                         }
-                    }
 
-                    String mId = getJsonStringValue(configJson, M_ID, null);
-                    String mToken = getJsonStringValue(configJson, M_TOKEN, null);
-                    String customerId = getJsonStringValue(configJson, CUSTOMER_ID, null);
-
-                    Config configObj;
-                    if (configJson.has(PARTNER_MERCHANT_INFO)) {
-                        JSONObject partnerMerchantInfo = configJson.getJSONObject(PARTNER_MERCHANT_INFO);
-                        PartnerInfo partnerInfo = null;
-                        if (!JSONObject.NULL.equals(partnerMerchantInfo) && partnerMerchantInfo.length() > 0) {
-                            partnerInfo = new PartnerInfo(
-                                    getJsonStringValue(partnerMerchantInfo, PARTNER_MERCHANT_ID, null),
-                                    getJsonStringValue(partnerMerchantInfo, PARTNER_MERCHANT_NAME, null),
-                                    getJsonStringValue(partnerMerchantInfo, PARTNER_TRANSACTION_ID, null)
-                            );
+                        String sdkMode = Config.PRODUCTION_MODE;
+                        if (configJson.has(SDK_MODE_SANDBOX) && configJson.getBoolean(SDK_MODE_SANDBOX)) {
+                            sdkMode = Config.SANDBOX_MODE;
                         }
-                        configObj = Config.getInstance(mId, mToken, customerId, partnerInfo, customer);
-                    } else {
-                        configObj = Config.getInstance(mId, mToken, customerId, customer);
-                    }
-
-                    String sdkMode = Config.PRODUCTION_MODE;
-                    if (configJson.has(SDK_MODE_SANDBOX) && configJson.getBoolean(SDK_MODE_SANDBOX)) {
-                        sdkMode = Config.SANDBOX_MODE;
-                    }
-                    configObj.setSDKMode(sdkMode);
-                    configObj.setOrderInfo(order);
-                    configObj.setDisableMinkasu2faUserAgent(true);
-                    Minkasu2faSDK.initReactSDK(mActivity, configObj, view, RCT_MINKASU_2FA_SDK_VERSION, new Minkasu2faCallback() {
-                        @Override
-                        public void handleInfo(Minkasu2faCallbackInfo info) {
+                        configObj.setSDKMode(sdkMode);
+                        configObj.setOrderInfo(order);
+                        configObj.setDisableMinkasu2faUserAgent(true);
+                        Minkasu2faSDK.initHybridSDK(mActivity, configObj, view, HYBRID_SDK_DETAILS, info -> {
                             WritableMap resultData = Arguments.createMap();
                             int infoType = -1;
                             String data = null;
@@ -303,15 +292,12 @@ class Minkasu2FAUtil {
                             }
                             resultData.putInt(RESULT_INFO_TYPE, infoType);
                             resultData.putString(RESULT_DATA, data);
-                            view.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    ((RNCWebView) view).dispatchEvent(view, new TopMinkasu2FAResultEvent(RNCWebViewWrapper.getReactTagFromWebView(view), resultData));
-                                }
-                            });
-                        }
-                    });
-                    status = SUCCESS;
+                            view.post(() -> ((RNCWebView) view).dispatchEvent(view, new TopMinkasu2FAResultEvent(RNCWebViewWrapper.getReactTagFromWebView(view), resultData)));
+                        });
+                        status = SUCCESS;
+                    } else {
+                        errorMessage = "Platform Not Supported";
+                    }
                 } else {
                     errorMessage = "Initialization Skipped";
                 }
@@ -331,11 +317,6 @@ class Minkasu2FAUtil {
         }
         eventData.putString(INIT_TYPE, initType);
         eventData.putString(STATUS, status);
-        view.post(new Runnable() {
-            @Override
-            public void run() {
-                ((RNCWebView) view).dispatchEvent(view, new TopMinkasu2FAInitEvent(RNCWebViewWrapper.getReactTagFromWebView(view), eventData));
-            }
-        });
+        view.post(() -> ((RNCWebView) view).dispatchEvent(view, new TopMinkasu2FAInitEvent(RNCWebViewWrapper.getReactTagFromWebView(view), eventData)));
     }
 }

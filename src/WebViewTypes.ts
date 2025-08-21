@@ -1398,8 +1398,6 @@ export interface WebViewSharedProps extends ViewProps {
 }
 
 export interface Minkasu2FAConstants  {
-  CHANGE_PIN: string,
-  ENABLE_BIOMETRICS: string,
   DISABLE_BIOMETRICS: string,
   MERCHANT_ID: string,
   MERCHANT_TOKEN: string,
@@ -1423,7 +1421,7 @@ export interface Minkasu2FAConstants  {
   CUSTOMER_ORDER_INFO: string,
   CUSTOMER_ORDER_ID: string,
   CUSTOMER_BILLING_CATEGORY: string,
-  CUSTOMER_CUSTOM_DATA: string,
+  CUSTOMER_ORDER_DETAILS: string,
   SDK_MODE_SANDBOX: string,
   STATUS: string,
   STATUS_SUCCESS: string,

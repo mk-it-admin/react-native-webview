@@ -3,8 +3,6 @@ import { TurboModuleRegistry } from 'react-native';
 import { Double, Int32 } from 'react-native/Libraries/Types/CodegenTypes';
 
 type Minkasu2FAConstants = {
-  CHANGE_PIN: string,
-  ENABLE_BIOMETRICS: string,
   DISABLE_BIOMETRICS: string,
   MERCHANT_ID: string,
   MERCHANT_TOKEN: string,
@@ -28,7 +26,7 @@ type Minkasu2FAConstants = {
   CUSTOMER_ORDER_INFO: string,
   CUSTOMER_ORDER_ID: string,
   CUSTOMER_BILLING_CATEGORY: string,
-  CUSTOMER_CUSTOM_DATA: string,
+  CUSTOMER_ORDER_DETAILS: string,
   SDK_MODE_SANDBOX: string,
   STATUS: string,
   STATUS_SUCCESS: string,
