@@ -30,7 +30,6 @@ import java.util.Map;
 
 class Minkasu2FAUtil {
     static final String RCT_MINKASU_2FA_SDK_VERSION = "2.0.11227";
-
     static final String INIT_BY_METHOD = "byMethod";
     static final String INIT_BY_PROPERTY = "byProperty";
 
@@ -289,12 +288,10 @@ class Minkasu2FAUtil {
             } else {
                 errorMessage = "Initialization Skipped";
             }
-        } catch (
-                JSONException e) {
+        } catch (JSONException e) {
             Log.e("Minkasu2FAUtil", "Error in initializing the sdk" + e.getMessage());
             errorMessage = e.getMessage();
-        } catch (
-                Exception e1) {
+        } catch (Exception e1) {
             if (e1 instanceof MissingDataException) {
                 eventData.putString(ERROR_CODE, ((MissingDataException) e1).getErrorCode());
             }
