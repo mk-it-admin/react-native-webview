@@ -405,12 +405,8 @@ RCT_EXPORT_METHOD(initMinkasu2FA:(nonnull NSNumber *)reactTag minkasu2FAConfig:(
 //                              @"SKIP_INIT":SKIP_INIT,
 //                              @"NAVIGATION_BAR_COLOR":NAVIGATION_BAR_COLOR,
 //                              @"NAVIGATION_BAR_TEXT_COLOR":NAVIGATION_BAR_TEXT_COLOR,
-//                              @"BUTTON_BACKGROUND_COLOR":BUTTON_BACKGROUND_COLOR,
-//                              @"BUTTON_TEXT_COLOR":BUTTON_TEXT_COLOR,
 //                              @"DARK_MODE_NAVIGATION_BAR_COLOR":DARK_MODE_NAVIGATION_BAR_COLOR,
 //                              @"DARK_MODE_NAVIGATION_BAR_TEXT_COLOR":DARK_MODE_NAVIGATION_BAR_TEXT_COLOR,
-//                              @"DARK_MODE_BUTTON_BACKGROUND_COLOR":DARK_MODE_BUTTON_BACKGROUND_COLOR,
-//                              @"DARK_MODE_BUTTON_TEXT_COLOR":DARK_MODE_BUTTON_TEXT_COLOR,
 //                              @"SUPPORT_DARK_MODE":SUPPORT_DARK_MODE,
 //                              @"IOS_THEME_OBJ":IOS_THEME_OBJ,
 //                              @"MINKASU_2FA_USER_AGENT":[Minkasu2FA getMinkasu2FAUserAgent],
@@ -419,7 +415,7 @@ RCT_EXPORT_METHOD(initMinkasu2FA:(nonnull NSNumber *)reactTag minkasu2FAConfig:(
 //                              @"PARTNER_MERCHANT_NAME":PARTNER_MERCHANT_NAME,
 //                              @"PARTNER_TRANSACTION_ID":PARTNER_TRANSACTION_ID,
 //                              @"CUSTOMER_BILLING_CATEGORY":BILLING_CATEGORY,
-//                              @"CUSTOMER_CUSTOM_DATA":CUSTOM_DATA,
+//                              @"CUSTOMER_ORDER_DETAILS":ORDER_DETAILS,
 //                              @"RESULT_INFO_TYPE":RESULT_INFO_TYPE,
 //                              @"RESULT_DATA":RESULT_DATA};
 //     return export;
@@ -495,8 +491,8 @@ RCT_EXPORT_METHOD(initMinkasu2FA:(nonnull NSNumber *)reactTag minkasu2FAConfig:(
             if (minkasu2FAConfig[CUSTOMER_ORDER_INFO][BILLING_CATEGORY]) {
                 orderInfo.billingCategory = minkasu2FAConfig[CUSTOMER_ORDER_INFO][BILLING_CATEGORY];
             }
-            if (minkasu2FAConfig[CUSTOMER_ORDER_INFO][CUSTOM_DATA]) {
-                orderInfo.billingCategory = minkasu2FAConfig[CUSTOMER_ORDER_INFO][CUSTOM_DATA];
+            if (minkasu2FAConfig[CUSTOMER_ORDER_INFO][ORDER_DETAILS]) {
+                orderInfo.orderDetails = minkasu2FAConfig[CUSTOMER_ORDER_INFO][ORDER_DETAILS];
             }
         }
         
@@ -509,23 +505,11 @@ RCT_EXPORT_METHOD(initMinkasu2FA:(nonnull NSNumber *)reactTag minkasu2FAConfig:(
             if (minkasu2FAConfig[IOS_THEME_OBJ][NAVIGATION_BAR_TEXT_COLOR]) {
                 mkcolorTheme.navigationBarTextColor = [self colorFromHexString:minkasu2FAConfig[IOS_THEME_OBJ][NAVIGATION_BAR_TEXT_COLOR]];
             }
-            if (minkasu2FAConfig[IOS_THEME_OBJ][BUTTON_BACKGROUND_COLOR]) {
-                mkcolorTheme.buttonBackgroundColor = [self colorFromHexString:minkasu2FAConfig[IOS_THEME_OBJ][BUTTON_BACKGROUND_COLOR]];
-            }
-            if (minkasu2FAConfig[IOS_THEME_OBJ][BUTTON_TEXT_COLOR]) {
-                mkcolorTheme.buttonTextColor = [self colorFromHexString:minkasu2FAConfig[IOS_THEME_OBJ][BUTTON_TEXT_COLOR]];
-            }
             if (minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_NAVIGATION_BAR_COLOR]) {
                 mkcolorTheme.darkModeNavigationBarColor = [self colorFromHexString:minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_NAVIGATION_BAR_COLOR]];
             }
             if (minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_NAVIGATION_BAR_TEXT_COLOR]) {
                 mkcolorTheme.darkModeNavigationBarTextColor = [self colorFromHexString:minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_NAVIGATION_BAR_TEXT_COLOR]];
-            }
-            if (minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_BUTTON_BACKGROUND_COLOR]) {
-                mkcolorTheme.darkModeButtonBackgroundColor = [self colorFromHexString:minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_BUTTON_BACKGROUND_COLOR]];
-            }
-            if (minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_BUTTON_TEXT_COLOR]) {
-                mkcolorTheme.darkModeButtonTextColor = [self colorFromHexString:minkasu2FAConfig[IOS_THEME_OBJ][DARK_MODE_BUTTON_TEXT_COLOR]];
             }
             if (minkasu2FAConfig[IOS_THEME_OBJ][SUPPORT_DARK_MODE]) {
                 mkcolorTheme.supportDarkMode = minkasu2FAConfig[IOS_THEME_OBJ][SUPPORT_DARK_MODE];

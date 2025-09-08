@@ -16,5 +16,5 @@ Pod::Spec.new do |s|
   s.source_files  = "apple/**/*.{h,m}"
 
   s.dependency 'React-Core'
-  s.dependency 'Minkasu2FA','3.0.3'
+  s.dependency 'Minkasu2FA','5.0.0'
 end

@@ -39,15 +39,11 @@
 #define SKIP_INIT @"skip_init"
 #define NAVIGATION_BAR_COLOR @"navigation_bar_color"
 #define NAVIGATION_BAR_TEXT_COLOR @"navigation_bar_text_color"
-#define BUTTON_BACKGROUND_COLOR @"button_background_color"
-#define BUTTON_TEXT_COLOR @"button_text_color"
 #define DARK_MODE_NAVIGATION_BAR_COLOR @"dark_mode_navigation_bar_color"
 #define DARK_MODE_NAVIGATION_BAR_TEXT_COLOR @"dark_mode_navigation_bar_text_color"
-#define DARK_MODE_BUTTON_BACKGROUND_COLOR @"dark_mode_button_background_color"
-#define DARK_MODE_BUTTON_TEXT_COLOR @"dark_mode_button_text_color"
 #define SUPPORT_DARK_MODE @"support_dark_mode"
 #define IOS_THEME_OBJ @"ios_theme_obj"
-#define CUSTOM_DATA  @"custom_data"
+#define ORDER_DETAILS  @"order_details"
 #define BILLING_CATEGORY  @"billing_category"
 #define PARTNER_MERCHANT_INFO  @"partner_merchant_info"
 #define PARTNER_MERCHANT_ID  @"partner_merchant_id"
@@ -57,8 +53,6 @@
 #define RESULT_INFO_TYPE  @"infoType"
 #define RESULT_DATA  @"data"
 
-#define CHANGE_PIN @"changePin"
-#define ENABLE_BIOMETRICS @"enableBiometrics"
 #define DISABLE_BIOMETRICS @"disableBiometrics"
 
 #endif /* Constants_h */

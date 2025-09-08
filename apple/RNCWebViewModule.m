@@ -15,9 +15,7 @@ RCT_EXPORT_MODULE(RNCWebView)
 
 - (NSDictionary *)constantsToExport{
     
-    NSDictionary *minkasu2FAConstants = @{@"CHANGE_PIN":CHANGE_PIN,
-                             @"ENABLE_BIOMETRICS":ENABLE_BIOMETRICS,
-                             @"DISABLE_BIOMETRICS":DISABLE_BIOMETRICS,
+    NSDictionary *minkasu2FAConstants = @{@"DISABLE_BIOMETRICS":DISABLE_BIOMETRICS,
                              @"MERCHANT_ID":MERCHANT_ID,
                              @"MERCHANT_TOKEN":MERCHANT_TOKEN,
                              @"CUSTOMER_ID":CUSTOMER_ID,
@@ -47,12 +45,8 @@ RCT_EXPORT_MODULE(RNCWebView)
                              @"SKIP_INIT":SKIP_INIT,
                              @"NAVIGATION_BAR_COLOR":NAVIGATION_BAR_COLOR,
                              @"NAVIGATION_BAR_TEXT_COLOR":NAVIGATION_BAR_TEXT_COLOR,
-                             @"BUTTON_BACKGROUND_COLOR":BUTTON_BACKGROUND_COLOR,
-                             @"BUTTON_TEXT_COLOR":BUTTON_TEXT_COLOR,
                              @"DARK_MODE_NAVIGATION_BAR_COLOR":DARK_MODE_NAVIGATION_BAR_COLOR,
                              @"DARK_MODE_NAVIGATION_BAR_TEXT_COLOR":DARK_MODE_NAVIGATION_BAR_TEXT_COLOR,
-                             @"DARK_MODE_BUTTON_BACKGROUND_COLOR":DARK_MODE_BUTTON_BACKGROUND_COLOR,
-                             @"DARK_MODE_BUTTON_TEXT_COLOR":DARK_MODE_BUTTON_TEXT_COLOR,
                              @"SUPPORT_DARK_MODE":SUPPORT_DARK_MODE,
                              @"IOS_THEME_OBJ":IOS_THEME_OBJ,
                              @"MINKASU_2FA_USER_AGENT":[Minkasu2FA getMinkasu2FAUserAgent],
@@ -61,7 +55,7 @@ RCT_EXPORT_MODULE(RNCWebView)
                              @"PARTNER_MERCHANT_NAME":PARTNER_MERCHANT_NAME,
                              @"PARTNER_TRANSACTION_ID":PARTNER_TRANSACTION_ID,
                              @"CUSTOMER_BILLING_CATEGORY":BILLING_CATEGORY,
-                             @"CUSTOMER_CUSTOM_DATA":CUSTOM_DATA,
+                             @"CUSTOMER_ORDER_DETAILS":ORDER_DETAILS,
                              @"RESULT_INFO_TYPE":RESULT_INFO_TYPE,
                              @"RESULT_DATA":RESULT_DATA
     };
@@ -80,11 +74,7 @@ RCT_REMAP_METHOD(getAvailableMinkasu2FAOperations,
     NSMutableDictionary *operations = [[NSMutableDictionary alloc] init];
     if([minkasu2FAOperations count] > 0){
         for (NSNumber *operation in minkasu2FAOperations){
-            if(operation.intValue == MINKASU2FA_CHANGE_PAYPIN) {
-                [operations setObject:@"CHANGE PIN" forKey:CHANGE_PIN];
-            }else if(operation.intValue == MINKASU2FA_ENABLE_BIOMETRY) {
-                [operations setObject:@"ENABLE BIOMETRICS" forKey:ENABLE_BIOMETRICS];
-            } else if(operation.intValue == MINKASU2FA_DISABLE_BIOMETRY) {
+            if(operation.intValue == MINKASU2FA_DISABLE_BIOMETRY) {
                 [operations setObject:@"DISABLE BIOMETRICS" forKey:DISABLE_BIOMETRICS];
             }
         }
@@ -108,37 +98,17 @@ RCT_REMAP_METHOD(performMinkasu2FAOperation,
             if (colourTheme[NAVIGATION_BAR_TEXT_COLOR]) {
                 mkcolorTheme.navigationBarTextColor = [self colorFromHexString:colourTheme[NAVIGATION_BAR_TEXT_COLOR]];
             }
-            if (colourTheme[BUTTON_BACKGROUND_COLOR]) {
-                mkcolorTheme.buttonBackgroundColor = [self colorFromHexString:colourTheme[BUTTON_BACKGROUND_COLOR]];
-            }
-            if (colourTheme[BUTTON_TEXT_COLOR]) {
-                mkcolorTheme.buttonTextColor = [self colorFromHexString:colourTheme[BUTTON_TEXT_COLOR]];
-            }
             if (colourTheme[DARK_MODE_NAVIGATION_BAR_COLOR]) {
                 mkcolorTheme.darkModeNavigationBarColor = [self colorFromHexString:colourTheme[DARK_MODE_NAVIGATION_BAR_COLOR]];
             }
             if (colourTheme[DARK_MODE_NAVIGATION_BAR_TEXT_COLOR]) {
                 mkcolorTheme.darkModeNavigationBarTextColor = [self colorFromHexString:colourTheme[DARK_MODE_NAVIGATION_BAR_TEXT_COLOR]];
             }
-            if (colourTheme[DARK_MODE_BUTTON_BACKGROUND_COLOR]) {
-                mkcolorTheme.darkModeButtonBackgroundColor = [self colorFromHexString:colourTheme[DARK_MODE_BUTTON_BACKGROUND_COLOR]];
-            }
-            if (colourTheme[DARK_MODE_BUTTON_TEXT_COLOR]) {
-                mkcolorTheme.darkModeButtonTextColor = [self colorFromHexString:colourTheme[DARK_MODE_BUTTON_TEXT_COLOR]];
-            }
             if (colourTheme[SUPPORT_DARK_MODE]) {
                 mkcolorTheme.supportDarkMode = colourTheme[SUPPORT_DARK_MODE];
             }
         }
-        if ([operationTypeStr isEqualToString:@"CHANGE PIN"]) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [Minkasu2FA performMinkasu2FAOperation:MINKASU2FA_CHANGE_PAYPIN merchantCustomerId:merchantCustomerId customTheme:mkcolorTheme];
-            });
-        }else if([operationTypeStr isEqualToString:@"ENABLE BIOMETRICS"]){
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [Minkasu2FA performMinkasu2FAOperation:MINKASU2FA_ENABLE_BIOMETRY merchantCustomerId:merchantCustomerId customTheme:mkcolorTheme];
-            });
-        }else if ([operationTypeStr isEqualToString:@"DISABLE BIOMETRICS"]){
+        if ([operationTypeStr isEqualToString:@"DISABLE BIOMETRICS"]){
             dispatch_async(dispatch_get_main_queue(), ^{
                 [Minkasu2FA performMinkasu2FAOperation:MINKASU2FA_DISABLE_BIOMETRY merchantCustomerId:merchantCustomerId customTheme:mkcolorTheme];
             });

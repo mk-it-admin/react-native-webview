@@ -1346,8 +1346,6 @@ export interface WebViewSharedProps extends ViewProps {
 }
 
 export interface Minkasu2FAConstants  {
-  CHANGE_PIN: string,
-  ENABLE_BIOMETRICS: string,
   DISABLE_BIOMETRICS: string,
   MERCHANT_ID: string,
   MERCHANT_TOKEN: string,
@@ -1371,7 +1369,7 @@ export interface Minkasu2FAConstants  {
   CUSTOMER_ORDER_INFO: string,
   CUSTOMER_ORDER_ID: string,
   CUSTOMER_BILLING_CATEGORY: string,
-  CUSTOMER_CUSTOM_DATA: string,
+  CUSTOMER_ORDER_DETAILS: string,
   SDK_MODE_SANDBOX: string,
   STATUS: string,
   STATUS_SUCCESS: string,
@@ -1392,11 +1390,7 @@ export interface Minkasu2FAConstants  {
   // iOS Only
   NAVIGATION_BAR_COLOR?: string,
   NAVIGATION_BAR_TEXT_COLOR?: string,
-  BUTTON_BACKGROUND_COLOR?: string,
-  BUTTON_TEXT_COLOR?: string,
   DARK_MODE_NAVIGATION_BAR_COLOR?:string,
   DARK_MODE_NAVIGATION_BAR_TEXT_COLOR?:string,
-  DARK_MODE_BUTTON_BACKGROUND_COLOR?: string,
-  DARK_MODE_BUTTON_TEXT_COLOR?: string,
   SUPPORT_DARK_MODE?: boolean
 }
