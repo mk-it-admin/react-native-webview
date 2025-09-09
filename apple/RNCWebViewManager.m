@@ -307,7 +307,8 @@ RCT_EXPORT_VIEW_PROPERTY(onMinkasu2FAResult, RCTDirectEventBlock)
             self->mkWebView.onMinkasu2FAInit(@{@"status":status,@"initType":INIT_BY_ATTRIBUTE });
         }else{
             @try {
-                [Minkasu2FA initReactSDKWithWKWebView:self->mkWebView.webView andConfiguration:config reactSDKVersion:REACT_NATIVE_MINKASU2FA_SDK_VERSION inViewController:nil error:&err];
+                NSString *hybridSDKDetails = [NSString stringWithFormat:@"{\"react_sdk_version\":\"%@\"}", REACT_NATIVE_MINKASU2FA_SDK_VERSION];
+                [Minkasu2FA initHybridSDKWithWKWebView:self->mkWebView.webView andConfiguration:config hybridSDKDetails:hybridSDKDetails inViewController:nil error:&err];
                 self->mkWebView.onMinkasu2FAInit(@{@"status":status,@"initType":INIT_BY_ATTRIBUTE });
             } @catch (NSException *exception) {
                 status = STATUS_FAILURE;
@@ -337,7 +338,8 @@ RCT_CUSTOM_VIEW_PROPERTY(minkasu2FAConfig, NSString, RNCWebView) {
             self->mkWebView.onMinkasu2FAInit(@{@"status":status,@"initType":INIT_BY_METHOD });
         }else{
             @try {
-                [Minkasu2FA initReactSDKWithWKWebView:self->mkWebView.webView andConfiguration:self->minkasuConfig reactSDKVersion:REACT_NATIVE_MINKASU2FA_SDK_VERSION inViewController:nil error:&err];
+                NSString *hybridSDKDetails = [NSString stringWithFormat:@"{\"react_sdk_version\":\"%@\"}", REACT_NATIVE_MINKASU2FA_SDK_VERSION];
+                [Minkasu2FA initHybridSDKWithWKWebView:self->mkWebView.webView andConfiguration:self->minkasuConfig hybridSDKDetails:hybridSDKDetails inViewController:nil error:&err];
                 self->mkWebView.onMinkasu2FAInit(@{@"status":status,@"initType":INIT_BY_METHOD });
             } @catch (NSException *exception) {
                 status = STATUS_FAILURE;
