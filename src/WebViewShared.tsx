@@ -14,6 +14,8 @@ import {
   WebViewProgressEvent,
   WebViewRenderProcessGoneEvent,
   WebViewTerminatedEvent,
+  Minkasu2FAInitEvent,
+  Minkasu2FAResultEvent
 } from './WebViewTypes';
 import styles from './WebView.styles';
 
@@ -113,6 +115,8 @@ export const useWebViewLogic = ({
   originWhitelist,
   onShouldStartLoadWithRequestProp,
   onShouldStartLoadWithRequestCallback,
+  onMinkasu2FAInit,
+  onMinkasu2FAResult,
 }: {
   startInLoadingState?: boolean;
   onNavigationStateChange?: (event: WebViewNavigation) => void;
@@ -134,6 +138,8 @@ export const useWebViewLogic = ({
     url: string,
     lockIdentifier?: number | undefined
   ) => void;
+  onMinkasu2FAInit?: (event: Minkasu2FAInitEvent) => void;
+  onMinkasu2FAResult?: (event: Minkasu2FAResultEvent) => void;
 }) => {
   const [viewState, setViewState] = useState<'IDLE' | 'LOADING' | 'ERROR'>(
     startInLoadingState ? 'LOADING' : 'IDLE'
@@ -274,6 +280,22 @@ export const useWebViewLogic = ({
     [onOpenWindowProp]
   );
 
+  // Android & iOS Only 
+  const onMinkasu2FAInitilaization = useCallback(
+    (event: Minkasu2FAInitEvent) => {
+      onMinkasu2FAInit?.(event);
+    },
+    [onMinkasu2FAInit]
+  );
+
+  const onMinkasu2FAResultAction = useCallback(
+    (event: Minkasu2FAResultEvent) => {
+      onMinkasu2FAResult?.(event);
+    },
+    [onMinkasu2FAResult]
+  );
+  // !Android & iOS Only
+
   return {
     onShouldStartLoadWithRequest,
     onLoadingStart,
@@ -289,5 +311,7 @@ export const useWebViewLogic = ({
     viewState,
     setViewState,
     lastErrorEvent,
+    onMinkasu2FAInitilaization,
+    onMinkasu2FAResultAction
   };
 };

@@ -21,6 +21,9 @@ import {
   DecelerationRateConstant,
   WebViewSourceUri,
 } from './WebViewTypes';
+import {
+  type Minkasu2FAConstants
+} from './WebViewTypes';
 
 import styles from './WebView.styles';
 
@@ -87,6 +90,9 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(
       incognito,
       decelerationRate: decelerationRateProp,
       onShouldStartLoadWithRequest: onShouldStartLoadWithRequestProp,
+      minkasu2FAConfig,
+      onMinkasu2FAInit,
+      onMinkasu2FAResult,
       ...otherProps
     },
     ref
@@ -118,6 +124,8 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(
       onLoadingProgress,
       onOpenWindow,
       onContentProcessDidTerminate,
+      onMinkasu2FAInitilaization,
+      onMinkasu2FAResultAction
     } = useWebViewLogic({
       onNavigationStateChange,
       onLoad,
@@ -133,6 +141,8 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(
       onShouldStartLoadWithRequestProp,
       onShouldStartLoadWithRequestCallback,
       onContentProcessDidTerminateProp,
+      onMinkasu2FAInit,
+      onMinkasu2FAResult
     });
 
     useImperativeHandle(
@@ -159,6 +169,8 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(
         clearCache: (includeDiskFiles: boolean) =>
           webViewRef.current &&
           Commands.clearCache(webViewRef.current, includeDiskFiles),
+        initMinkasu2FA: (mk2FAConfig: Object) =>
+          webViewRef.current && Commands.initMinkasu2FA(webViewRef.current, JSON.stringify(mk2FAConfig))
       }),
       [setViewState, webViewRef]
     );
@@ -228,6 +240,11 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(
           )
         : sourceResolved;
 
+    let mk2FAConfig;
+    if (minkasu2FAConfig) {
+      mk2FAConfig = JSON.stringify(minkasu2FAConfig);
+    }
+
     const webView = (
       <NativeWebView
         key="webViewKey"
@@ -278,6 +295,9 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(
         ref={webViewRef}
         // @ts-expect-error old arch only
         source={sourceResolved}
+        minkasu2FAConfig={mk2FAConfig}
+        onMinkasu2FAInit={onMinkasu2FAInitilaization}
+        onMinkasu2FAResult={onMinkasu2FAResultAction}
         {...nativeConfig?.props}
       />
     );
@@ -293,7 +313,13 @@ const WebViewComponent = forwardRef<{}, IOSWebViewProps>(
 
 // no native implementation for iOS, depends only on permissions
 const isFileUploadSupported: () => Promise<boolean> = async () => true;
+const { getConstants } = RNCWebViewModule;
 
-const WebView = Object.assign(WebViewComponent, { isFileUploadSupported });
+// Minkasu2FA
+const { getAvailableMinkasu2FAOperations, performMinkasu2FAOperation } = RNCWebViewModule;
+const Minkasu2FAConstant: Minkasu2FAConstants = getConstants().MINKASU2FA_CONSTANTS;
+const Minkasu2FA = { getAvailableMinkasu2FAOperations, performMinkasu2FAOperation, Constants: Minkasu2FAConstant };
+
+const WebView = Object.assign(WebViewComponent, { isFileUploadSupported }, { Minkasu2FA });
 
 export default WebView;

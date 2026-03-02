@@ -9,6 +9,7 @@
 #import <React/RCTDefines.h>
 #import <WebKit/WKDataDetectorTypes.h>
 #import <WebKit/WebKit.h>
+#import <Minkasu2FA/Minkasu2FA.h>
 
 #if !TARGET_OS_OSX
 #import <UIKit/UIScrollView.h>
@@ -45,14 +46,18 @@ shouldStartLoadForRequest:(NSMutableDictionary<NSString *, id> *)request
 @end
 
 #if !TARGET_OS_OSX
-@interface RNCWebViewImpl : RCTView <UIEditMenuInteractionDelegate, UIGestureRecognizerDelegate>
+@interface RNCWebViewImpl : RCTView <UIEditMenuInteractionDelegate, UIGestureRecognizerDelegate, Minkasu2FACallbackDelegate>>
 
 @property (nonatomic, nullable) UIEditMenuInteraction *editMenuInteraction API_AVAILABLE(ios(16.0));
 #else
-@interface RNCWebViewImpl : RCTView
+@interface RNCWebViewImpl : RCTView<Minkasu2FACallbackDelegate>
 #endif // !TARGET_OS_OSX
 
 
+@property (nonatomic,assign)BOOL isSkipInit;
+@property (nonatomic, copy) NSString * _Nullable minkasu2FAConfig;
+@property (nonatomic, copy) RCTDirectEventBlock onMinkasu2FAInit;
+@property (nonatomic, copy) RCTDirectEventBlock onMinkasu2FAResult;
 @property (nonatomic, copy) RCTDirectEventBlock onFileDownload;
 @property (nonatomic, copy) RCTDirectEventBlock onLoadingStart;
 @property (nonatomic, copy) RCTDirectEventBlock onLoadingFinish;
@@ -149,6 +154,7 @@ shouldStartLoadForRequest:(NSMutableDictionary<NSString *, id> *)request
 - (void)stopLoading;
 - (void)requestFocus;
 - (void)clearCache:(BOOL)includeDiskFiles;
+- (void)initMinkasu2FA:(nonnull NSString *)minkasu2FAConfig;
 #ifdef RCT_NEW_ARCH_ENABLED
 - (void)destroyWebView;
 #endif
