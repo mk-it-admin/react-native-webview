@@ -34,7 +34,7 @@ class Minkasu2FAUtil {
     private static final Object LOCK = new Object();
 
 
-    static final String RCT_MINKASU_2FA_SDK_VERSION = "4.0.13160";
+    static final String RCT_MINKASU_2FA_SDK_VERSION = "4.0.13161";
     private static final String HYBRID_SDK_DETAILS = new JSONObject() {{
         try {
             put("react_sdk_version", RCT_MINKASU_2FA_SDK_VERSION);

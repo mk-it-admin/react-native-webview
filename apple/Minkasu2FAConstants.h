@@ -8,7 +8,7 @@
 
 #ifndef Constants_h
 #define Constants_h
-#define REACT_NATIVE_MINKASU2FA_SDK_VERSION @"4.0.13160"
+#define REACT_NATIVE_MINKASU2FA_SDK_VERSION @"4.0.13161"
 #define MERCHANT_ID @"m_id"
 #define MERCHANT_TOKEN @"m_token"
 #define CUSTOMER_ID @"customer_id"

@@ -282,6 +282,8 @@ class RNCWebViewManagerImpl(private val newArch: Boolean = false) {
         webView.themedReactContext.removeLifecycleEventListener(webView)
         webView.cleanupCallbacksAndDestroy()
         webView.mWebChromeClient = null
+        mMinkasuConfig = null
+        Minkasu2FAUtil.previousMKConfig = null
     }
 
     fun setMinkasu2FAConfig(viewWrapper: RNCWebViewWrapper, config: String?, initType: String) {

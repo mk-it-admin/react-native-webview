@@ -165,15 +165,7 @@ RCT_REMAP_METHOD(performMinkasu2FAOperation,
                 mkcolorTheme.supportDarkMode = colourTheme[SUPPORT_DARK_MODE];
             }
         }
-        if ([minkasuOperationType isEqualToString:@"CHANGE PIN"]) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [Minkasu2FA performMinkasu2FAOperation:MINKASU2FA_CHANGE_PAYPIN merchantCustomerId:merchantCustomerId customTheme:mkcolorTheme];
-            });
-        }else if([minkasuOperationType isEqualToString:@"ENABLE BIOMETRICS"]){
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [Minkasu2FA performMinkasu2FAOperation:MINKASU2FA_ENABLE_BIOMETRY merchantCustomerId:merchantCustomerId customTheme:mkcolorTheme];
-            });
-        }else if ([minkasuOperationType isEqualToString:@"DISABLE BIOMETRICS"]){
+        if ([minkasuOperationType isEqualToString:@"DISABLE BIOMETRICS"]){
             dispatch_async(dispatch_get_main_queue(), ^{
                 [Minkasu2FA performMinkasu2FAOperation:MINKASU2FA_DISABLE_BIOMETRY merchantCustomerId:merchantCustomerId customTheme:mkcolorTheme];
             });
