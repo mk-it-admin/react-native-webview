@@ -86,7 +86,7 @@ class Minkasu2FAUtil {
 
     private final ReactApplicationContext mContext;
 
-    private static String previousMKConfig = null;
+    static String previousMKConfig = null;
 
     Minkasu2FAUtil(ReactApplicationContext context) {
         this.mContext = context;
